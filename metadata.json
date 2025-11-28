@@ -1,0 +1,5 @@
+{
+  "name": "No-Permit Backyard Pod Estimator",
+  "description": "A mobile-optimized wizard to estimate costs for a 160 sq ft backyard pod, featuring AI-generated summaries and location-based data collection.",
+  "requestFramePermissions": []
+}

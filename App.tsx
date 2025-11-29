@@ -18,6 +18,8 @@ import {
   FLOORING_OPTIONS,
 } from './constants';
 import { calculateEstimate } from './services/pricingService';
+import { createPartialQuote, completeQuote } from './services/databaseService';
+import { sendEstimateEmail, sendConfirmationEmail } from './services/emailService';
 
 // --- CONFIGURATION ---
 // Replace with your actual Mapbox Public Access Token
@@ -295,6 +297,9 @@ export default function App() {
   const [loadingText, setLoadingText] = useState('Analyzing requirements...');
   const [estimate, setEstimate] = useState<EstimateResult | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [isSavingQuote, setIsSavingQuote] = useState(false);
 
   // Form State
   const [config, setConfig] = useState<PodConfiguration>({
@@ -339,18 +344,39 @@ export default function App() {
         setIsLoading(true);
         setLoadingText('Analyzing your configuration...');
         setCurrentStepIndex(resultIndex);
-        
-        // Trigger Toast
-        setShowToast(true);
 
         // 2. Calculate pricing
         const pricing = calculateEstimate(config);
         setEstimate({
           ...pricing,
-          summary: '', 
+          summary: '',
         });
-        
-        // 3. Simulate calculation delay with steps
+
+        // 3. Save partial quote to database and send estimate email (non-blocking)
+        try {
+          const savedQuote = await createPartialQuote(contact.email, config, {
+            low: pricing.low,
+            high: pricing.high,
+          });
+
+          setQuoteId(savedQuote.id);
+
+          // Send estimate email (fire-and-forget)
+          sendEstimateEmail(contact.email, config, pricing, savedQuote.id).catch(err => {
+            console.error('Failed to send estimate email:', err);
+          });
+
+          // Trigger Toast
+          setToastMessage(`Estimate sent to ${contact.email}`);
+          setShowToast(true);
+        } catch (error) {
+          console.error('Error creating partial quote:', error);
+          // Still show toast even if save fails - don't block user
+          setToastMessage(`Estimate sent to ${contact.email}`);
+          setShowToast(true);
+        }
+
+        // 4. Simulate calculation delay with steps
         setTimeout(() => {
           setLoadingText('Checking local material costs...');
         }, 800);
@@ -362,6 +388,57 @@ export default function App() {
         setTimeout(() => {
           setIsLoading(false);
         }, 2400);
+        return;
+    }
+
+    // If we are at CONTACT (final step), complete quote and send confirmation email
+    if (currentStepId === 'CONTACT') {
+        setIsSavingQuote(true);
+        setLoadingText('Saving your quote...');
+
+        try {
+          // Complete the existing quote with contact info and address
+          const completedQuote = await completeQuote(contact.email, address, contact);
+
+          setQuoteId(completedQuote.id);
+
+          // Send confirmation email (fire-and-forget)
+          sendConfirmationEmail(
+            completedQuote.id,
+            contact.email,
+            contact.fullName,
+            contact.phone,
+            address.fullAddress,
+            config,
+            {
+              low: estimate?.low || 0,
+              high: estimate?.high || 0,
+            }
+          ).catch(err => {
+            console.error('Failed to send confirmation email:', err);
+          });
+
+          // Show success toast
+          setToastMessage('Quote saved successfully!');
+          setShowToast(true);
+
+          // Move to SUCCESS step
+          setCurrentStepIndex((prev) => prev + 1);
+        } catch (error) {
+          console.error('Error completing quote:', error);
+
+          // Show error toast
+          setToastMessage('Failed to save quote. Please try again.');
+          setShowToast(true);
+
+          // Still allow user to proceed to SUCCESS even if save fails
+          // This ensures user flow isn't blocked
+          setTimeout(() => {
+            setCurrentStepIndex((prev) => prev + 1);
+          }, 2000);
+        } finally {
+          setIsSavingQuote(false);
+        }
         return;
     }
 
@@ -795,8 +872,8 @@ export default function App() {
             description="Please enter your contact details for availability & final quote"
             onNext={handleNext}
             onBack={handleBack}
-            nextLabel="Submit"
-            isNextDisabled={!contact.fullName || !isValidPhone(contact.phone)}
+            nextLabel={isSavingQuote ? "Submitting..." : "Submit"}
+            isNextDisabled={!contact.fullName || !isValidPhone(contact.phone) || isSavingQuote}
           >
             <div className="space-y-5 mt-2">
               <div>
@@ -876,7 +953,7 @@ export default function App() {
       <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] transition-all duration-500 ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
         <div className="bg-slate-900/95 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700/50">
           <span className="text-green-400 font-bold text-lg">✓</span>
-          <span className="text-sm font-medium">Estimate sent to {contact.email}</span>
+          <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       </div>
 

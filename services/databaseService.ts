@@ -23,12 +23,42 @@ export interface QuoteData {
   notes: string | null;
 }
 
+// Generate a mock quote ID for when Supabase is not configured
+function generateMockId(): string {
+  return `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 export async function createQuote(
   config: PodConfiguration,
   address: AddressData,
   contact: ContactData,
   estimate: { low: number; high: number }
 ): Promise<QuoteData> {
+  if (!supabase) {
+    console.warn('Supabase not configured, returning mock quote');
+    return {
+      id: generateMockId(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      use_case: config.useCase || '',
+      exterior_color: config.exteriorColor || '',
+      flooring: config.flooring || '',
+      hvac: config.hvac === HvacOption.YES,
+      additional_details: config.additionalDetails || '',
+      email: contact.email,
+      full_name: contact.fullName || null,
+      phone: contact.phone || null,
+      full_address: address.fullAddress || null,
+      latitude: address.lat,
+      longitude: address.lng,
+      estimate_low: estimate.low,
+      estimate_high: estimate.high,
+      currency: 'CAD',
+      status: 'submitted',
+      notes: null,
+    };
+  }
+
   const { data, error } = await supabase
     .from('quotes')
     .insert({
@@ -59,6 +89,11 @@ export async function createQuote(
 }
 
 export async function getQuote(id: string): Promise<QuoteData | null> {
+  if (!supabase) {
+    console.warn('Supabase not configured, cannot fetch quote');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('quotes')
     .select('*')
@@ -78,6 +113,11 @@ export async function updateQuoteStatus(
   status: 'estimate_sent' | 'submitted' | 'reviewed' | 'contacted' | 'converted' | 'rejected',
   notes?: string
 ): Promise<boolean> {
+  if (!supabase) {
+    console.warn('Supabase not configured, cannot update quote status');
+    return true; // Return true to not block the flow
+  }
+
   const updateData: Record<string, any> = { status };
   if (notes !== undefined) {
     updateData.notes = notes;
@@ -105,6 +145,31 @@ export async function createPartialQuote(
   config: PodConfiguration,
   estimate: { low: number; high: number }
 ): Promise<QuoteData> {
+  if (!supabase) {
+    console.warn('Supabase not configured, returning mock partial quote');
+    return {
+      id: generateMockId(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      use_case: config.useCase || '',
+      exterior_color: config.exteriorColor || '',
+      flooring: config.flooring || '',
+      hvac: config.hvac === HvacOption.YES,
+      additional_details: config.additionalDetails || '',
+      email,
+      full_name: null,
+      phone: null,
+      full_address: null,
+      latitude: null,
+      longitude: null,
+      estimate_low: estimate.low,
+      estimate_high: estimate.high,
+      currency: 'CAD',
+      status: 'estimate_sent',
+      notes: null,
+    };
+  }
+
   const { data, error } = await supabase
     .from('quotes')
     .insert({
@@ -145,6 +210,31 @@ export async function completeQuote(
   address: AddressData,
   contact: ContactData
 ): Promise<QuoteData> {
+  if (!supabase) {
+    console.warn('Supabase not configured, returning mock completed quote');
+    return {
+      id: generateMockId(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      use_case: '',
+      exterior_color: '',
+      flooring: '',
+      hvac: false,
+      additional_details: '',
+      email,
+      full_name: contact.fullName,
+      phone: contact.phone,
+      full_address: address.fullAddress,
+      latitude: address.lat,
+      longitude: address.lng,
+      estimate_low: 0,
+      estimate_high: 0,
+      currency: 'CAD',
+      status: 'submitted',
+      notes: null,
+    };
+  }
+
   // Find the most recent estimate_sent quote for this email
   const { data: existingQuotes, error: findError } = await supabase
     .from('quotes')

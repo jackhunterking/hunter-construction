@@ -21,6 +21,11 @@ export async function sendEstimateEmail(
   estimate: Pick<EstimateResult, 'low' | 'high'>,
   quoteId?: string
 ): Promise<EmailResponse> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn('Supabase not configured, skipping estimate email');
+    return { success: true, status: 'skipped - no supabase config' };
+  }
+
   try {
     const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
       method: 'POST',
@@ -69,6 +74,11 @@ export async function sendConfirmationEmail(
   config: PodConfiguration,
   estimate: Pick<EstimateResult, 'low' | 'high'>
 ): Promise<EmailResponse> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn('Supabase not configured, skipping confirmation email');
+    return { success: true, status: 'skipped - no supabase config' };
+  }
+
   try {
     const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
       method: 'POST',

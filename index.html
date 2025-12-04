@@ -67,12 +67,18 @@
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
       
+      // Initialize pixel immediately with ID from environment variable
+      // Vite replaces %VITE_META_PIXEL_ID% at build time
+      fbq('init', '%VITE_META_PIXEL_ID%');
+      
       // Disable automatic button click tracking (SubscribedButtonClick)
       // This prevents the pixel from auto-detecting and tracking all button clicks
-      if (window.fbq) {
-        window.fbq('set', 'autoConfig', false);
-      }
+      fbq('set', 'autoConfig', false, '%VITE_META_PIXEL_ID%');
     </script>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=%VITE_META_PIXEL_ID%&ev=PageView&noscript=1"/>
+    </noscript>
     <!-- End Meta Pixel Code -->
   </head>
   <body class="bg-slate-50 text-slate-900 font-sans antialiased">

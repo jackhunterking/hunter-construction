@@ -57,18 +57,9 @@ function RootRoute() {
 export default function App() {
   const location = useLocation();
   
-  // Initialize Facebook Pixel once on app load
-  useEffect(() => {
-    const pixelId = import.meta.env.VITE_META_PIXEL_ID;
-    
-    if (pixelId && typeof window !== 'undefined' && window.fbq) {
-      // Initialize pixel (Advanced Matching will work automatically on form fields)
-      window.fbq('init', pixelId);
-      console.log('[Meta Pixel] Initialized with ID:', pixelId);
-    } else if (!pixelId) {
-      console.warn('[Meta Pixel] VITE_META_PIXEL_ID not configured');
-    }
-  }, []);
+  // Note: Meta Pixel is initialized in index.html for best practices
+  // This ensures the pixel loads synchronously before any page content
+  // and eliminates the "Pixel not found" warning from the SDK
 
   // Track PageView on route changes (both client and server, with deduplication)
   useEffect(() => {

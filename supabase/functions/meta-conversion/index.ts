@@ -90,7 +90,10 @@ serve(async (req) => {
     // Send to Meta Conversions API if credentials are configured
     if (META_PIXEL_ID && META_ACCESS_TOKEN) {
       try {
-        const metaApiUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}`;
+        // Add test_event_code for testing (remove after testing is complete)
+        const TEST_EVENT_CODE = Deno.env.get('META_TEST_EVENT_CODE'); // Set to TEST20053 for testing
+        const testParam = TEST_EVENT_CODE ? `&test_event_code=${TEST_EVENT_CODE}` : '';
+        const metaApiUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}${testParam}`;
 
         const response = await fetch(metaApiUrl, {
           method: 'POST',

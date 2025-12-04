@@ -59,13 +59,8 @@ export default function App() {
     const pixelId = import.meta.env.VITE_META_PIXEL_ID;
     
     if (pixelId && typeof window !== 'undefined' && window.fbq) {
-      // Initialize pixel with Advanced Matching enabled
-      window.fbq('init', pixelId, {
-        em: 'enabled',
-        ph: 'enabled',
-        fn: 'enabled',
-        ln: 'enabled',
-      });
+      // Initialize pixel (Advanced Matching will work automatically on form fields)
+      window.fbq('init', pixelId);
       // Track initial PageView
       window.fbq('track', 'PageView');
       console.log('[Meta Pixel] Initialized with ID:', pixelId);

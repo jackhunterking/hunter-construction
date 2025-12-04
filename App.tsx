@@ -54,6 +54,26 @@ function RootRoute() {
  * 3. Add the form option to InquirySelectionPage
  */
 export default function App() {
+  // Initialize Facebook Pixel on app load
+  useEffect(() => {
+    const pixelId = import.meta.env.VITE_META_PIXEL_ID;
+    
+    if (pixelId && typeof window !== 'undefined' && window.fbq) {
+      // Initialize pixel with Advanced Matching enabled
+      window.fbq('init', pixelId, {
+        em: 'enabled',
+        ph: 'enabled',
+        fn: 'enabled',
+        ln: 'enabled',
+      });
+      // Track initial PageView
+      window.fbq('track', 'PageView');
+      console.log('[Meta Pixel] Initialized with ID:', pixelId);
+    } else if (!pixelId) {
+      console.warn('[Meta Pixel] VITE_META_PIXEL_ID not configured');
+    }
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<RootRoute />} />

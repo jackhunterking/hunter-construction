@@ -66,24 +66,7 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      
-      // Initialize pixel with ID from environment variable
-      // Will be replaced at build time by Vite
-      if (typeof window !== 'undefined' && import.meta.env.VITE_META_PIXEL_ID) {
-        fbq('init', import.meta.env.VITE_META_PIXEL_ID, {
-          // Enable Automatic Advanced Matching for better event matching
-          em: 'enabled',
-          ph: 'enabled',
-          fn: 'enabled',
-          ln: 'enabled',
-        });
-        fbq('track', 'PageView');
-      }
     </script>
-    <noscript>
-      <img height="1" width="1" style="display:none"
-           src="https://www.facebook.com/tr?id=PIXEL_ID&ev=PageView&noscript=1"/>
-    </noscript>
     <!-- End Meta Pixel Code -->
   </head>
   <body class="bg-slate-50 text-slate-900 font-sans antialiased">

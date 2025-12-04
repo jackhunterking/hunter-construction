@@ -257,7 +257,7 @@ export default function BasementSuitePage() {
         </div>
         <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-accent transition-all duration-500 ease-out"
+            className="h-full bg-secondary transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -283,10 +283,10 @@ export default function BasementSuitePage() {
                   <button
                     key={option.value}
                     onClick={() => toggleProjectType(option.value)}
-                    className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                    className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                       isSelected
-                        ? 'border-accent shadow-md'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-primary shadow-md'
+                        : 'border-slate-200 hover:border-accent'
                     }`}
                   >
                     <div className="flex items-center gap-4">
@@ -297,8 +297,8 @@ export default function BasementSuitePage() {
                         {option.label}
                       </span>
                     </div>
-                    <div className={`w-6 h-6 rounded border flex items-center justify-center flex-shrink-0 ${
-                      isSelected ? 'border-accent bg-accent' : 'border-slate-300'
+                    <div className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      isSelected ? 'border-primary bg-primary' : 'border-slate-300'
                     }`}>
                       {isSelected && (
                         <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -327,10 +327,10 @@ export default function BasementSuitePage() {
                 <button
                   key={String(option.value)}
                   onClick={() => setFormData({ ...formData, needsSeparateEntrance: option.value })}
-                  className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                  className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                     formData.needsSeparateEntrance === option.value
-                      ? 'border-accent shadow-md'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-primary shadow-md'
+                      : 'border-slate-200 hover:border-accent'
                   }`}
                 >
                   <span className={`font-bold text-lg ${
@@ -338,8 +338,8 @@ export default function BasementSuitePage() {
                   }`}>
                     {option.label}
                   </span>
-                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                    formData.needsSeparateEntrance === option.value ? 'border-accent bg-accent' : 'border-slate-300'
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    formData.needsSeparateEntrance === option.value ? 'border-primary bg-primary' : 'border-slate-300'
                   }`}>
                     {formData.needsSeparateEntrance === option.value && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                   </div>
@@ -363,10 +363,10 @@ export default function BasementSuitePage() {
                 <button
                   key={String(option.value)}
                   onClick={() => setFormData({ ...formData, hasPlanDesign: option.value })}
-                  className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                  className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                     formData.hasPlanDesign === option.value
-                      ? 'border-accent shadow-md'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-primary shadow-md'
+                      : 'border-slate-200 hover:border-accent'
                   }`}
                 >
                   <span className={`font-bold text-lg ${
@@ -374,8 +374,8 @@ export default function BasementSuitePage() {
                   }`}>
                     {option.label}
                   </span>
-                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                    formData.hasPlanDesign === option.value ? 'border-accent bg-accent' : 'border-slate-300'
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    formData.hasPlanDesign === option.value ? 'border-primary bg-primary' : 'border-slate-300'
                   }`}>
                     {formData.hasPlanDesign === option.value && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                   </div>
@@ -399,10 +399,10 @@ export default function BasementSuitePage() {
                 <button
                   key={option.value}
                   onClick={() => setFormData({ ...formData, projectUrgency: option.value })}
-                  className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                  className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                     formData.projectUrgency === option.value
-                      ? 'border-accent shadow-md'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-primary shadow-md'
+                      : 'border-slate-200 hover:border-accent'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -413,8 +413,8 @@ export default function BasementSuitePage() {
                       {option.label}
                     </span>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                    formData.projectUrgency === option.value ? 'border-accent bg-accent' : 'border-slate-300'
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    formData.projectUrgency === option.value ? 'border-primary bg-primary' : 'border-slate-300'
                   }`}>
                     {formData.projectUrgency === option.value && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                   </div>
@@ -436,7 +436,7 @@ export default function BasementSuitePage() {
             <div className="space-y-4">
               <textarea
                 placeholder="Enter your project details, vision, or any special requests (optional)"
-                className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm min-h-[150px] resize-none placeholder:text-slate-400"
+                className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm min-h-[150px] resize-none placeholder:text-slate-400 transition-all duration-300"
                 value={formData.additionalDetails}
                 onChange={(e) => setFormData({ ...formData, additionalDetails: e.target.value })}
               />
@@ -459,7 +459,7 @@ export default function BasementSuitePage() {
                 <input
                   type="text"
                   placeholder="Enter your address or postal code"
-                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm placeholder:text-slate-400"
+                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm placeholder:text-slate-400 transition-all duration-300"
                   value={addressInput}
                   onChange={(e) => handleAddressInputChange(e.target.value)}
                   onFocus={() => {
@@ -515,8 +515,8 @@ export default function BasementSuitePage() {
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm ${
-                    formData.email && !isValidEmail(formData.email) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300'
+                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:border-transparent outline-none bg-white text-slate-900 shadow-sm transition-all duration-300 ${
+                    formData.email && !isValidEmail(formData.email) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-secondary'
                   }`}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -545,7 +545,7 @@ export default function BasementSuitePage() {
                 <input
                   type="text"
                   placeholder="John Doe"
-                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm"
+                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm transition-all duration-300"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 />
@@ -557,8 +557,8 @@ export default function BasementSuitePage() {
                   type="tel"
                   inputMode="numeric"
                   placeholder="5551234567"
-                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm ${
-                    formData.phone && !isValidPhone(formData.phone) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300'
+                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:border-transparent outline-none bg-white text-slate-900 shadow-sm transition-all duration-300 ${
+                    formData.phone && !isValidPhone(formData.phone) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-secondary'
                   }`}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}

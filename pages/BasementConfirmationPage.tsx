@@ -49,7 +49,7 @@ export default function BasementConfirmationPage() {
       
       <div className="w-full max-w-xs space-y-3">
         <a 
-          href="/"
+          href="https://hunterconstruction.ca"
           className="w-full py-4 bg-primary text-white font-bold rounded-lg shadow-lg hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
           Back to Home

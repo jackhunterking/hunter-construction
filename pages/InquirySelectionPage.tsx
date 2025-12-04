@@ -48,17 +48,17 @@ export default function InquirySelectionPage() {
             <button
               key={option.id}
               onClick={() => navigate(option.route)}
-              className="group relative bg-white rounded-2xl border-2 border-slate-200 hover:border-accent transition-all duration-300 overflow-hidden shadow-sm hover:shadow-xl transform hover:scale-[1.02] text-left"
+              className="group relative bg-white rounded-2xl border-2 border-slate-200 hover:border-secondary transition-all duration-300 overflow-hidden shadow-sm hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] text-left"
             >
               {/* Card Content */}
               <div className="p-8">
                 {/* Icon */}
-                <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-colors">
+                <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-secondary/20 transition-all duration-300">
                   <span className="text-4xl">{option.icon}</span>
                 </div>
 
                 {/* Title & Description */}
-                <h2 className="text-2xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors">
+                <h2 className="text-2xl font-bold text-primary mb-3 transition-colors duration-300">
                   {option.title}
                 </h2>
                 <p className="text-slate-600 mb-6 leading-relaxed">
@@ -97,7 +97,7 @@ export default function InquirySelectionPage() {
               </div>
 
               {/* Accent Border on Hover */}
-              <div className="absolute inset-x-0 bottom-0 h-1 bg-accent transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-secondary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
             </button>
           ))}
         </div>

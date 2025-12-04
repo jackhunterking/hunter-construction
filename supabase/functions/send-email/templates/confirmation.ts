@@ -32,7 +32,7 @@ export function generateConfirmationEmail(data: ConfirmationData): string {
 
           <!-- Success Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #000000 0%, #1E3378 100%); padding: 40px; text-align: center;">
               <div style="background-color: rgba(255, 255, 255, 0.2); width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 32px;">✓</span>
               </div>
@@ -79,7 +79,7 @@ export function generateConfirmationEmail(data: ConfirmationData): string {
                           <span style="color: #64748b; font-size: 14px;">Estimate</span>
                         </td>
                         <td align="right" style="padding: 8px 0;">
-                          <strong style="color: #FF5D22; font-size: 16px;">$${data.estimateLow.toLocaleString()} - $${data.estimateHigh.toLocaleString()} CAD</strong>
+                          <strong style="color: #EBC76B; font-size: 16px;">$${data.estimateLow.toLocaleString()} - $${data.estimateHigh.toLocaleString()} CAD</strong>
                         </td>
                       </tr>
                     </table>
@@ -98,14 +98,13 @@ export function generateConfirmationEmail(data: ConfirmationData): string {
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td width="40" valign="top">
-                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #FF5D22 0%, #FF7A47 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">1</div>
+                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #EBC76B 0%, #F5D98A 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000000; font-weight: 700; font-size: 14px;">1</div>
                         </td>
                         <td valign="top">
                           <h3 style="color: #1e293b; font-size: 15px; font-weight: 600; margin: 0 0 6px;">SITE REVIEW</h3>
                           <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">
                             Our team will review your address for eligibility and access requirements.
                           </p>
-                          <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0;">1-2 business days</p>
                         </td>
                       </tr>
                     </table>
@@ -118,14 +117,13 @@ export function generateConfirmationEmail(data: ConfirmationData): string {
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td width="40" valign="top">
-                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #033A3F 0%, #055B63 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">2</div>
+                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #1E3378 0%, #2647A3 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">2</div>
                         </td>
                         <td valign="top">
                           <h3 style="color: #1e293b; font-size: 15px; font-weight: 600; margin: 0 0 6px;">PERSONAL CONSULTATION</h3>
                           <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">
                             We'll reach out to discuss your project and answer any questions.
                           </p>
-                          <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0;">2-3 business days</p>
                         </td>
                       </tr>
                     </table>
@@ -138,14 +136,13 @@ export function generateConfirmationEmail(data: ConfirmationData): string {
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td width="40" valign="top">
-                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">3</div>
+                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #000000 0%, #1E3378 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">3</div>
                         </td>
                         <td valign="top">
                           <h3 style="color: #1e293b; font-size: 15px; font-weight: 600; margin: 0 0 6px;">FINAL QUOTE</h3>
                           <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">
                             Receive your detailed, buildable quote with timeline and payment options.
                           </p>
-                          <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0;">3-5 business days</p>
                         </td>
                       </tr>
                     </table>
@@ -212,9 +209,10 @@ export function generateConfirmationEmail(data: ConfirmationData): string {
           <!-- Footer -->
           <tr>
             <td style="background-color: #f8fafc; padding: 32px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
-              <p style="color: #033A3F; font-size: 16px; font-weight: 600; margin: 0 0 8px;">Pod Quotes</p>
+              <img src="/assets/Hunter-Logo.png" alt="Hunter Construction Logo" style="height: 40px; width: auto; margin: 0 auto 16px; display: block;" />
+              <p style="color: #000000; font-size: 16px; font-weight: 600; margin: 0 0 8px;">Hunter Construction</p>
               <p style="color: #64748b; font-size: 13px; margin: 0 0 8px;">Quote #${shortQuoteId}</p>
-              <p style="color: #94a3b8; font-size: 12px; margin: 0;">Building dreams, one pod at a time</p>
+              <p style="color: #94a3b8; font-size: 12px; margin: 0;">Build Wealth With Construction</p>
             </td>
           </tr>
 

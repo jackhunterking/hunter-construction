@@ -229,7 +229,7 @@ const AddressStep: React.FC<AddressStepProps> = ({ address, setAddress, onNext, 
             <input
               type="text"
               placeholder="Start typing your address..."
-              className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm placeholder:text-slate-400"
+              className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm placeholder:text-slate-400 transition-all duration-300"
               value={query}
               onChange={handleInputChange}
             />
@@ -470,7 +470,7 @@ export default function PodEstimatorPage() {
         </div>
         <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-accent transition-all duration-500 ease-out"
+            className="h-full bg-secondary transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -494,10 +494,10 @@ export default function PodEstimatorPage() {
                 <button
                   key={option.value}
                   onClick={() => setConfig({ ...config, useCase: option.value })}
-                  className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                  className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                     config.useCase === option.value
-                      ? 'border-accent shadow-md'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-primary shadow-md'
+                      : 'border-slate-200 hover:border-accent'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -508,8 +508,8 @@ export default function PodEstimatorPage() {
                       {option.label}
                     </span>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                    config.useCase === option.value ? 'border-accent bg-accent' : 'border-slate-300'
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    config.useCase === option.value ? 'border-primary bg-primary' : 'border-slate-300'
                   }`}>
                     {config.useCase === option.value && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                   </div>
@@ -536,10 +536,10 @@ export default function PodEstimatorPage() {
                 >
                   <button
                     onClick={() => setConfig({ ...config, exteriorColor: option.value })}
-                    className={`w-full flex flex-col rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                    className={`w-full flex flex-col rounded-lg overflow-hidden border-2 transition-all duration-300 transform active:scale-95 ${
                       config.exteriorColor === option.value
-                        ? 'border-accent shadow-xl scale-[1.02]'
-                        : 'border-transparent shadow-md scale-100 opacity-90'
+                        ? 'border-primary shadow-xl scale-[1.02]'
+                        : 'border-transparent shadow-md scale-100 opacity-90 hover:border-accent'
                     }`}
                   >
                     <div className="h-48 sm:h-56 w-full bg-slate-200 relative">
@@ -580,10 +580,10 @@ export default function PodEstimatorPage() {
                 <button
                   key={option.value}
                   onClick={() => setConfig({ ...config, flooring: option.value })}
-                  className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                  className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                     config.flooring === option.value
-                      ? 'border-accent shadow-md'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-primary shadow-md'
+                      : 'border-slate-200 hover:border-accent'
                   }`}
                 >
                   <span className={`font-bold text-lg ${
@@ -591,8 +591,8 @@ export default function PodEstimatorPage() {
                   }`}>
                     {option.label}
                   </span>
-                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                    config.flooring === option.value ? 'border-accent bg-accent' : 'border-slate-300'
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                    config.flooring === option.value ? 'border-primary bg-primary' : 'border-slate-300'
                   }`}>
                     {config.flooring === option.value && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                   </div>
@@ -615,10 +615,10 @@ export default function PodEstimatorPage() {
             <div className="space-y-4">
               <button
                 onClick={() => setConfig({ ...config, hvac: HvacOption.YES })}
-                className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                   config.hvac === HvacOption.YES
-                    ? 'border-accent shadow-md'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-primary shadow-md'
+                    : 'border-slate-200 hover:border-accent'
                 }`}
               >
                 <div>
@@ -627,8 +627,8 @@ export default function PodEstimatorPage() {
                   }`}>Yes, include it</div>
                   <div className="text-sm text-slate-500 mt-0.5">Full climate control (Mini-split)</div>
                 </div>
-                <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                  config.hvac === HvacOption.YES ? 'border-accent bg-accent' : 'border-slate-300'
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                  config.hvac === HvacOption.YES ? 'border-primary bg-primary' : 'border-slate-300'
                 }`}>
                   {config.hvac === HvacOption.YES && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                 </div>
@@ -636,10 +636,10 @@ export default function PodEstimatorPage() {
 
               <button
                 onClick={() => setConfig({ ...config, hvac: HvacOption.NO })}
-                className={`w-full p-5 rounded-lg border flex items-center justify-between transition-all text-left bg-white ${
+                className={`w-full p-5 rounded-lg border-2 flex items-center justify-between transition-all duration-300 text-left bg-white transform hover:scale-[1.02] active:scale-[0.98] ${
                   config.hvac === HvacOption.NO
-                    ? 'border-accent shadow-md'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-primary shadow-md'
+                    : 'border-slate-200 hover:border-accent'
                 }`}
               >
                 <div>
@@ -648,8 +648,8 @@ export default function PodEstimatorPage() {
                   }`}>No thanks</div>
                   <div className="text-sm text-slate-500 mt-0.5">I'll source my own solution</div>
                 </div>
-                <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                  config.hvac === HvacOption.NO ? 'border-accent bg-accent' : 'border-slate-300'
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                  config.hvac === HvacOption.NO ? 'border-primary bg-primary' : 'border-slate-300'
                 }`}>
                   {config.hvac === HvacOption.NO && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
                 </div>
@@ -673,8 +673,8 @@ export default function PodEstimatorPage() {
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm ${
-                    contact.email && !isValidEmail(contact.email) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300'
+                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:border-transparent outline-none bg-white text-slate-900 shadow-sm transition-all duration-300 ${
+                    contact.email && !isValidEmail(contact.email) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-secondary'
                   }`}
                   value={contact.email}
                   onChange={(e) => setContact({ ...contact, email: e.target.value })}
@@ -792,7 +792,7 @@ export default function PodEstimatorPage() {
               <div className="max-w-lg mx-auto w-full">
                 <button 
                   onClick={handlePhase2Start}
-                  className="w-full bg-accent text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-accent/20 active:scale-[0.98] transition-transform hover:bg-[#d4b055]"
+                  className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/20 transition-all duration-300 transform hover:bg-secondary hover:scale-105 active:scale-95"
                 >
                   Check Availability In Your Area
                 </button>
@@ -827,7 +827,7 @@ export default function PodEstimatorPage() {
                 <input
                   type="text"
                   placeholder="John Doe"
-                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm"
+                  className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm transition-all duration-300"
                   value={contact.fullName}
                   onChange={(e) => setContact({ ...contact, fullName: e.target.value })}
                 />
@@ -839,8 +839,8 @@ export default function PodEstimatorPage() {
                   type="number"
                   inputMode="numeric"
                   placeholder="5551234567"
-                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white text-slate-900 shadow-sm ${
-                    contact.phone && !isValidPhone(contact.phone) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300'
+                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:border-transparent outline-none bg-white text-slate-900 shadow-sm transition-all duration-300 ${
+                    contact.phone && !isValidPhone(contact.phone) ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-secondary'
                   }`}
                   value={contact.phone}
                   onChange={(e) => setContact({ ...contact, phone: e.target.value })}
@@ -873,14 +873,14 @@ export default function PodEstimatorPage() {
             <div className="w-full max-w-xs space-y-3">
               <button 
                 onClick={handleShare}
-                className="w-full py-4 bg-primary text-white font-bold rounded-lg shadow-lg hover:bg-secondary transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 bg-primary text-white font-bold rounded-lg shadow-lg transition-all duration-300 transform hover:bg-secondary hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
                 <span>📤</span> Share This Project
               </button>
               
               <button 
                 onClick={() => window.location.reload()}
-                className="w-full py-4 text-slate-500 font-semibold hover:text-primary transition-colors"
+                className="w-full py-4 text-secondary font-semibold hover:text-primary transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 Start New Estimate
               </button>

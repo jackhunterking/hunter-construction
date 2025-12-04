@@ -1,7 +1,8 @@
 {
-  "name": "no-permit-backyard-pod-estimator",
+  "name": "hunter-construction",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Hunter Construction quote estimator and lead capture platform for high-ROI rental unit construction",
   "type": "module",
   "scripts": {
     "dev": "vite",

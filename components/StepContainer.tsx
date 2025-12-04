@@ -25,8 +25,8 @@ export const StepContainer: React.FC<StepContainerProps> = ({
     <div className="flex flex-col h-full w-full max-w-lg mx-auto overflow-hidden relative">
       {/* Header */}
       <div className="px-6 pt-4 pb-2">
-        <h2 className="text-3xl font-bold text-primary leading-tight">{title}</h2>
-        {description && <p className="mt-3 text-slate-600 leading-relaxed">{description}</p>}
+        <h2 className="font-heading text-3xl font-bold text-brand-navy leading-tight">{title}</h2>
+        {description && <p className="mt-3 text-brand-navy/70 leading-relaxed">{description}</p>}
       </div>
 
       {/* Content - Scrollable */}
@@ -48,10 +48,10 @@ export const StepContainer: React.FC<StepContainerProps> = ({
           <button
             onClick={onNext}
             disabled={isNextDisabled}
-            className={`flex-1 py-4 px-6 rounded-lg font-bold text-white shadow-lg transition-all transform active:scale-[0.98] ${
+            className={`flex-1 py-4 px-6 rounded-lg font-bold shadow-lg transition-all transform active:scale-[0.98] uppercase tracking-widest text-sm ${
               isNextDisabled
-                ? 'bg-slate-300 cursor-not-allowed shadow-none'
-                : 'bg-primary hover:bg-[#022c30] shadow-primary/30'
+                ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
+                : 'bg-brand-gold text-brand-black hover:bg-white hover:text-brand-black shadow-gold/20'
             }`}
           >
             {nextLabel}

@@ -3,18 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Backyard Pod Estimator</title>
+    <title>Hunter Construction - Quote Estimator</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              primary: '#033A3F', // Deep Teal
-              accent: '#FF5D22',  // Vibrant Orange
+              // Hunter Construction Brand Colors
+              brand: {
+                black: '#000000',
+                navy: '#1E3378',
+                gold: '#EBC76B',
+                smoke: '#D7DBD6',
+                white: '#FFFFFF',
+              },
+              // Maintain compatibility aliases
+              primary: '#1E3378',  // Navy (main brand color)
+              accent: '#EBC76B',   // Gold (accent color)
             },
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Space Grotesk', 'sans-serif'],
+              heading: ['Montserrat', 'sans-serif'],
             }
           }
         }

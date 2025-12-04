@@ -239,9 +239,7 @@ export default function BasementSuitePage() {
 
   // Progress Bar Logic
   const renderProgressBar = () => {
-    if (currentStepId === 'SUCCESS') return null;
-
-    const totalSteps = BASEMENT_STEPS_ORDER.length - 1; // Exclude SUCCESS
+    const totalSteps = BASEMENT_STEPS_ORDER.length; // SUCCESS is handled by a separate route
     const progress = ((currentStepIndex + 1) / totalSteps) * 100;
     const label = `STEP ${currentStepIndex + 1} / ${totalSteps}`;
 

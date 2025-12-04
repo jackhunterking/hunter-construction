@@ -30,7 +30,7 @@ export function generateBasementConfirmationEmail(data: BasementConfirmationData
 
           <!-- Success Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); padding: 40px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #000000 0%, #1E3378 100%); padding: 40px; text-align: center;">
               <img src="https://inquiry.hunterconstruction.ca/assets/Hunter_Logo.png" alt="Hunter Construction" style="max-width: 180px; height: auto; margin: 0 auto 20px; display: block;" />
               <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px;">Inquiry Received!</h1>
               <p style="color: rgba(255, 255, 255, 0.9); font-size: 15px; margin: 0;">We'll be in touch soon</p>
@@ -135,7 +135,7 @@ export function generateBasementConfirmationEmail(data: BasementConfirmationData
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td width="40" valign="top">
-                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #000000 0%, #000000 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">2</div>
+                          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #1E3378 0%, #2647A3 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 14px;">2</div>
                         </td>
                         <td valign="top">
                           <h3 style="color: #1e293b; font-size: 15px; font-weight: 600; margin: 0 0 6px;">CONSULTATION CALL</h3>
@@ -189,8 +189,9 @@ export function generateBasementConfirmationEmail(data: BasementConfirmationData
           <!-- Footer -->
           <tr>
             <td style="background-color: #f8fafc; padding: 32px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
-              <img src="https://inquiry.hunterconstruction.ca/assets/Hunter_Logo.png" alt="Hunter Construction" style="max-width: 140px; height: auto; margin: 0 auto 12px; display: block;" />
-              <p style="color: #64748b; font-size: 13px; margin: 0;">Building income units</p>
+              <img src="https://inquiry.hunterconstruction.ca/assets/Hunter_Logo.png" alt="Hunter Construction Logo" style="max-width: 140px; height: auto; margin: 0 auto 12px; display: block;" />
+              <p style="color: #000000; font-size: 16px; font-weight: 600; margin: 0 0 8px;">Hunter Construction</p>
+              <p style="color: #94a3b8; font-size: 12px; margin: 0;">Build Wealth With Construction</p>
             </td>
           </tr>
 

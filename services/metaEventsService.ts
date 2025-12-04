@@ -177,6 +177,48 @@ export async function trackViewContent(
   );
 }
 
+/**
+ * Track PageView event on both client and server
+ */
+export async function trackPageView(
+  pagePath: string,
+  email?: string
+): Promise<void> {
+  await sendMetaEvent(
+    'ViewContent',
+    { email: email || '' },
+    {
+      content_type: 'page',
+      content_name: pagePath,
+      page_path: pagePath
+    }
+  );
+}
+
+/**
+ * Track form step progression on both client and server
+ */
+export async function trackFormStep(
+  stepName: string,
+  formType: 'pod' | 'basement',
+  stepNumber: number,
+  totalSteps: number,
+  email?: string
+): Promise<void> {
+  await sendMetaEvent(
+    'ViewContent',
+    { email: email || '' },
+    {
+      content_type: 'form_step',
+      content_name: `${formType}_step_${stepNumber}`,
+      step_name: stepName,
+      step_number: stepNumber,
+      total_steps: totalSteps,
+      form_type: formType
+    }
+  );
+}
+
 export async function trackInitiateCheckout(
   email: string,
   estimateValue: number,

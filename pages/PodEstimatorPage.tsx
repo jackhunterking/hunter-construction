@@ -17,7 +17,7 @@ import {
 import { calculateEstimate } from '../services/pricingService';
 import { createPartialQuote, completeQuote } from '../services/databaseService';
 import { sendEstimateEmail, sendConfirmationEmail } from '../services/emailService';
-import { trackLead, trackCompleteRegistration, trackViewContent } from '../services/metaEventsService';
+import { trackLead, trackCompleteRegistration, trackViewContent, trackFormStep } from '../services/metaEventsService';
 
 // --- CONFIGURATION ---
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiamFja2h1bnRlcmtpbmciLCJhIjoiY21mbmhocHVnMDN5dDJycTd6NXJsbzdvdCJ9.J9o8ZqveZnan_BjJJEAfpg';
@@ -303,6 +303,21 @@ export default function PodEstimatorPage() {
   // Helpers to determine "Phase"
   const isPhase1 = currentStepIndex < STEPS_ORDER.indexOf('RESULT');
   const isPhase2 = currentStepIndex > STEPS_ORDER.indexOf('RESULT') && currentStepId !== 'SUCCESS';
+
+  // Track form step views (both client and server)
+  useEffect(() => {
+    if (currentStepId !== 'RESULT' && currentStepId !== 'SUCCESS') {
+      trackFormStep(
+        currentStepId,
+        'pod',
+        currentStepIndex + 1,
+        STEPS_ORDER.length,
+        contact.email || undefined
+      ).catch(err => {
+        console.error('Failed to track form step:', err);
+      });
+    }
+  }, [currentStepIndex, currentStepId, contact.email]);
 
   // Auto-hide toast after 4 seconds
   useEffect(() => {

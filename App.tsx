@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import PodEstimatorPage from './pages/PodEstimatorPage';
 import BasementSuitePage from './pages/BasementSuitePage';
 import BasementConfirmationPage from './pages/BasementConfirmationPage';
 import InquirySelectionPage from './pages/InquirySelectionPage';
 import LandingPage from './pages/LandingPage';
+import { trackPageView } from './services/metaEventsService';
 
 /**
  * Redirect component that redirects to external URL
@@ -54,6 +55,8 @@ function RootRoute() {
  * 3. Add the form option to InquirySelectionPage
  */
 export default function App() {
+  const location = useLocation();
+  
   // Initialize Facebook Pixel on app load
   useEffect(() => {
     const pixelId = import.meta.env.VITE_META_PIXEL_ID;
@@ -61,13 +64,33 @@ export default function App() {
     if (pixelId && typeof window !== 'undefined' && window.fbq) {
       // Initialize pixel (Advanced Matching will work automatically on form fields)
       window.fbq('init', pixelId);
-      // Track initial PageView
+      // Track initial PageView (client-side)
       window.fbq('track', 'PageView');
       console.log('[Meta Pixel] Initialized with ID:', pixelId);
+      
+      // Also track PageView on server-side for better attribution
+      trackPageView(window.location.pathname).catch(err => {
+        console.error('[Meta CAPI] Failed to track server-side PageView:', err);
+      });
     } else if (!pixelId) {
       console.warn('[Meta Pixel] VITE_META_PIXEL_ID not configured');
     }
   }, []);
+
+  // Track page changes (both client and server)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.fbq) {
+      // Client-side PageView
+      window.fbq('track', 'PageView');
+      
+      // Server-side PageView
+      trackPageView(location.pathname).catch(err => {
+        console.error('[Meta CAPI] Failed to track server-side PageView:', err);
+      });
+      
+      console.log('[Meta Events] PageView tracked for:', location.pathname);
+    }
+  }, [location.pathname]);
 
   return (
     <Routes>

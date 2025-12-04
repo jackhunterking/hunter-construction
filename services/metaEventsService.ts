@@ -114,11 +114,22 @@ export async function sendMetaEvent(
     };
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    // Debug logging
+    console.log('[Meta CAPI] Sending to:', `${supabaseUrl}/functions/v1/meta-conversion`);
+    console.log('[Meta CAPI] Event data:', { eventName, eventId, userData: { email: userData.email } });
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('[Meta CAPI] Missing Supabase configuration!', { supabaseUrl: !!supabaseUrl, supabaseAnonKey: !!supabaseAnonKey });
+      return { success: false, error: 'Missing Supabase configuration' };
+    }
+    
     const response = await fetch(`${supabaseUrl}/functions/v1/meta-conversion`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify(eventData),
     });

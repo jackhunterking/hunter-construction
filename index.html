@@ -56,7 +56,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <!-- Meta Pixel Code -->
+    <!-- Meta Pixel Code - Official Facebook Implementation -->
     <script>
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -66,14 +66,8 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      
-      // Initialize pixel immediately with ID from environment variable
-      // Vite replaces %VITE_META_PIXEL_ID% at build time
       fbq('init', '%VITE_META_PIXEL_ID%');
-      
-      // Disable automatic button click tracking (SubscribedButtonClick)
-      // This prevents the pixel from auto-detecting and tracking all button clicks
-      fbq('set', 'autoConfig', false, '%VITE_META_PIXEL_ID%');
+      fbq('track', 'PageView');
     </script>
     <noscript>
       <img height="1" width="1" style="display:none"

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import PodEstimatorPage from './pages/PodEstimatorPage';
 import BasementSuitePage from './pages/BasementSuitePage';
@@ -56,18 +56,28 @@ function RootRoute() {
  */
 export default function App() {
   const location = useLocation();
+  const isFirstRender = useRef(true);
   
-  // Note: Meta Pixel is initialized in index.html for best practices
-  // This ensures the pixel loads synchronously before any page content
-  // and eliminates the "Pixel not found" warning from the SDK
+  // Meta Pixel is initialized in index.html following Facebook's official best practice
+  // Initial PageView is also fired in HTML, so we only track SUBSEQUENT SPA route changes here
 
-  // Track PageView on route changes (both client and server, with deduplication)
+  // Track PageView on SPA route changes (skip initial - already fired in HTML)
   useEffect(() => {
+    // Skip the first render - HTML already fired the initial PageView
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      // Still send server-side event for initial page for CAPI deduplication
+      trackPageView(location.pathname).catch(err => {
+        console.error('[Meta CAPI] Failed to track server-side PageView:', err);
+      });
+      return;
+    }
+
     if (typeof window !== 'undefined' && window.fbq) {
-      // Client-side PageView
+      // Client-side PageView for SPA navigation
       window.fbq('track', 'PageView');
       
-      // Server-side PageView (uses same Event ID for deduplication)
+      // Server-side PageView (Conversions API)
       trackPageView(location.pathname).catch(err => {
         console.error('[Meta CAPI] Failed to track server-side PageView:', err);
       });

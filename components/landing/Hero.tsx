@@ -19,8 +19,8 @@ const Hero: React.FC = () => {
           Refining Real Estate Assets
         </p>
         <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-8 leading-tight">
-          Engineer <span className="text-brand-smoke italic font-light font-serif">Wealth</span> <br />
-          Through Construction
+          Build <span className="text-brand-smoke italic font-light font-serif">Wealth</span> <br />
+          With Construction
         </h1>
         <p className="text-brand-smoke/80 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed">
           We specialize in high-ROI rental units. From garden suites to basement conversions, we build assets that build your future.

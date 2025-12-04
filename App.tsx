@@ -57,33 +57,26 @@ function RootRoute() {
 export default function App() {
   const location = useLocation();
   
-  // Initialize Facebook Pixel on app load
+  // Initialize Facebook Pixel once on app load
   useEffect(() => {
     const pixelId = import.meta.env.VITE_META_PIXEL_ID;
     
     if (pixelId && typeof window !== 'undefined' && window.fbq) {
       // Initialize pixel (Advanced Matching will work automatically on form fields)
       window.fbq('init', pixelId);
-      // Track initial PageView (client-side)
-      window.fbq('track', 'PageView');
       console.log('[Meta Pixel] Initialized with ID:', pixelId);
-      
-      // Also track PageView on server-side for better attribution
-      trackPageView(window.location.pathname).catch(err => {
-        console.error('[Meta CAPI] Failed to track server-side PageView:', err);
-      });
     } else if (!pixelId) {
       console.warn('[Meta Pixel] VITE_META_PIXEL_ID not configured');
     }
   }, []);
 
-  // Track page changes (both client and server)
+  // Track PageView on route changes (both client and server, with deduplication)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.fbq) {
       // Client-side PageView
       window.fbq('track', 'PageView');
       
-      // Server-side PageView
+      // Server-side PageView (uses same Event ID for deduplication)
       trackPageView(location.pathname).catch(err => {
         console.error('[Meta CAPI] Failed to track server-side PageView:', err);
       });

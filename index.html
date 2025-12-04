@@ -66,6 +66,12 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
+      
+      // Disable automatic button click tracking (SubscribedButtonClick)
+      // This prevents the pixel from auto-detecting and tracking all button clicks
+      if (window.fbq) {
+        window.fbq('set', 'autoConfig', false);
+      }
     </script>
     <!-- End Meta Pixel Code -->
   </head>

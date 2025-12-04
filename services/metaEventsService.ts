@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-export type MetaEventName = 'ViewContent' | 'InitiateCheckout' | 'Lead' | 'CompleteRegistration';
+export type MetaEventName = 'PageView' | 'ViewContent' | 'InitiateCheckout' | 'Lead' | 'CompleteRegistration';
 
 export interface MetaEventData {
   eventName: MetaEventName;
@@ -185,7 +185,7 @@ export async function trackPageView(
   email?: string
 ): Promise<void> {
   await sendMetaEvent(
-    'ViewContent',
+    'PageView',
     { email: email || '' },
     {
       content_type: 'page',

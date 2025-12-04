@@ -18,8 +18,8 @@ interface MetaEventData {
   customData?: Record<string, any>;
   eventTime: number;
   eventSourceUrl: string;
-  fbp?: string; // Facebook browser ID cookie
-  fbc?: string; // Facebook click ID cookie
+  fbp?: string;
+  fbc?: string;
 }
 
 async function hashData(data: string): Promise<string> {
@@ -38,11 +38,23 @@ serve(async (req) => {
   try {
     const eventData: MetaEventData = await req.json();
 
+    // Get environment variables
     const META_PIXEL_ID = Deno.env.get('META_PIXEL_ID');
     const META_ACCESS_TOKEN = Deno.env.get('META_ACCESS_TOKEN');
     const META_API_VERSION = Deno.env.get('META_API_VERSION') || 'v21.0';
+    const META_TEST_EVENT_CODE = Deno.env.get('META_TEST_EVENT_CODE');
 
-    // Initialize Supabase client with service role
+    // Debug: Log configuration (without sensitive data)
+    console.log('[Meta CAPI] Configuration:', {
+      hasPixelId: !!META_PIXEL_ID,
+      pixelIdLength: META_PIXEL_ID?.length,
+      hasAccessToken: !!META_ACCESS_TOKEN,
+      apiVersion: META_API_VERSION,
+      hasTestCode: !!META_TEST_EVENT_CODE,
+      testCode: META_TEST_EVENT_CODE || 'NOT SET',
+    });
+
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -52,48 +64,91 @@ serve(async (req) => {
     const hashedPhone = eventData.userData.phone ? await hashData(eventData.userData.phone) : undefined;
     const hashedName = eventData.userData.fullName ? await hashData(eventData.userData.fullName) : undefined;
 
-    // Extract client IP and user agent from request headers for better attribution
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+    // Extract client IP and user agent for better attribution
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
                      req.headers.get('x-real-ip') || 
+                     req.headers.get('cf-connecting-ip') ||
                      undefined;
     const userAgent = req.headers.get('user-agent') || undefined;
 
-    // Prepare Meta CAPI payload with enhanced attribution data
-    const metaPayload = {
+    console.log('[Meta CAPI] Event received:', {
+      eventName: eventData.eventName,
+      eventId: eventData.eventId,
+      hasEmail: !!eventData.userData.email,
+      hasPhone: !!eventData.userData.phone,
+      hasFbp: !!eventData.fbp,
+      hasFbc: !!eventData.fbc,
+      clientIp: clientIp ? 'present' : 'missing',
+      userAgent: userAgent ? 'present' : 'missing',
+    });
+
+    // Build user_data object with ARRAY format per Facebook spec
+    // Facebook requires em, ph, fn to be arrays of hashed values
+    const userData: Record<string, any> = {};
+    
+    // Email is required and must be an array
+    userData.em = [hashedEmail];
+    
+    // Optional fields - only include if present, as arrays
+    if (hashedPhone) {
+      userData.ph = [hashedPhone];
+    }
+    if (hashedName) {
+      userData.fn = [hashedName];
+    }
+    
+    // Facebook browser cookies (not arrays)
+    if (eventData.fbp) {
+      userData.fbp = eventData.fbp;
+    }
+    if (eventData.fbc) {
+      userData.fbc = eventData.fbc;
+    }
+    
+    // IP and User Agent for better matching
+    if (clientIp) {
+      userData.client_ip_address = clientIp;
+    }
+    if (userAgent) {
+      userData.client_user_agent = userAgent;
+    }
+
+    // Build the Meta CAPI payload
+    // CRITICAL: test_event_code MUST be at root level of body, NOT in URL
+    const metaPayload: Record<string, any> = {
       data: [
         {
           event_name: eventData.eventName,
           event_time: eventData.eventTime,
-          event_id: eventData.eventId, // Same as client-side for deduplication
+          event_id: eventData.eventId,
           event_source_url: eventData.eventSourceUrl,
           action_source: 'website',
-          user_data: {
-            em: hashedEmail,
-            ph: hashedPhone,
-            fn: hashedName,
-            // Include Facebook cookies for better attribution
-            fbp: eventData.fbp,
-            fbc: eventData.fbc,
-            // Include IP and user agent for improved event matching
-            client_ip_address: clientIp,
-            client_user_agent: userAgent,
-          },
+          user_data: userData,
           custom_data: eventData.customData || {},
         },
       ],
     };
 
+    // Add test_event_code to BODY (not URL) per Facebook documentation
+    if (META_TEST_EVENT_CODE) {
+      metaPayload.test_event_code = META_TEST_EVENT_CODE;
+      console.log('[Meta CAPI] Test event code added to payload:', META_TEST_EVENT_CODE);
+    }
+
+    console.log('[Meta CAPI] Full payload:', JSON.stringify(metaPayload, null, 2));
+
     let metaResponse = null;
     let status = 'pending';
     let errorMessage = null;
 
-    // Send to Meta Conversions API if credentials are configured
+    // Send to Meta Conversions API
     if (META_PIXEL_ID && META_ACCESS_TOKEN) {
       try {
-        // Add test_event_code for testing (remove after testing is complete)
-        const TEST_EVENT_CODE = Deno.env.get('META_TEST_EVENT_CODE'); // Set to TEST20053 for testing
-        const testParam = TEST_EVENT_CODE ? `&test_event_code=${TEST_EVENT_CODE}` : '';
-        const metaApiUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}${testParam}`;
+        // URL should NOT contain test_event_code - it goes in the body
+        const metaApiUrl = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}`;
+        
+        console.log('[Meta CAPI] Sending to Facebook API...');
+        console.log('[Meta CAPI] URL:', `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events`);
 
         const response = await fetch(metaApiUrl, {
           method: 'POST',
@@ -104,19 +159,25 @@ serve(async (req) => {
         });
 
         metaResponse = await response.json();
+        
+        console.log('[Meta CAPI] Facebook response status:', response.status);
+        console.log('[Meta CAPI] Facebook response body:', JSON.stringify(metaResponse));
 
-        if (response.ok) {
+        if (response.ok && metaResponse.events_received > 0) {
           status = 'sent';
+          console.log('[Meta CAPI] SUCCESS - Events received:', metaResponse.events_received);
         } else {
           status = 'failed';
           errorMessage = JSON.stringify(metaResponse);
+          console.error('[Meta CAPI] FAILED - Response:', errorMessage);
         }
       } catch (error) {
         status = 'failed';
         errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('[Meta CAPI] EXCEPTION:', errorMessage);
       }
     } else {
-      console.log('Meta credentials not configured, skipping Meta API call');
+      console.error('[Meta CAPI] Missing credentials - PIXEL_ID:', !!META_PIXEL_ID, 'ACCESS_TOKEN:', !!META_ACCESS_TOKEN);
       status = 'pending';
       errorMessage = 'Meta credentials not configured';
     }
@@ -140,7 +201,7 @@ serve(async (req) => {
     });
 
     if (dbError) {
-      console.error('Error logging to database:', dbError);
+      console.error('[Meta CAPI] Database error:', dbError);
     }
 
     return new Response(
@@ -152,11 +213,11 @@ serve(async (req) => {
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: status === 'sent' ? 200 : 207, // 207 Multi-Status if Meta failed but logged
+        status: status === 'sent' ? 200 : 207,
       }
     );
   } catch (error) {
-    console.error('Edge function error:', error);
+    console.error('[Meta CAPI] Edge function error:', error);
     return new Response(
       JSON.stringify({
         success: false,

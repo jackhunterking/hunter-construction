@@ -16,6 +16,7 @@ import {
 } from '../constants/basement';
 import { createBasementInquiry } from '../services/basementDatabaseService';
 import { sendBasementConfirmationEmail, sendBasementSalesNotification } from '../services/emailService';
+import { trackLead } from '../services/metaEventsService';
 
 // --- VALIDATION HELPERS ---
 
@@ -182,6 +183,15 @@ export default function BasementSuitePage() {
         } catch (emailError) {
           console.error('Error sending emails:', emailError);
           // Don't fail the submission if email fails
+        }
+
+        // Track Meta Lead event (both Pixel and CAPI)
+        try {
+          await trackLead(formData.email, 0); // No estimate value for basement inquiries
+          console.log('Meta Lead event tracked for basement inquiry');
+        } catch (metaError) {
+          console.error('Error tracking Meta event:', metaError);
+          // Don't fail the submission if Meta tracking fails
         }
 
         // Navigate to confirmation page with email for display

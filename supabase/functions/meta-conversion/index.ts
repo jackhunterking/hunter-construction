@@ -18,6 +18,8 @@ interface MetaEventData {
   customData?: Record<string, any>;
   eventTime: number;
   eventSourceUrl: string;
+  fbp?: string; // Facebook browser ID cookie
+  fbc?: string; // Facebook click ID cookie
 }
 
 async function hashData(data: string): Promise<string> {
@@ -50,19 +52,31 @@ serve(async (req) => {
     const hashedPhone = eventData.userData.phone ? await hashData(eventData.userData.phone) : undefined;
     const hashedName = eventData.userData.fullName ? await hashData(eventData.userData.fullName) : undefined;
 
-    // Prepare Meta CAPI payload
+    // Extract client IP and user agent from request headers for better attribution
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     req.headers.get('x-real-ip') || 
+                     undefined;
+    const userAgent = req.headers.get('user-agent') || undefined;
+
+    // Prepare Meta CAPI payload with enhanced attribution data
     const metaPayload = {
       data: [
         {
           event_name: eventData.eventName,
           event_time: eventData.eventTime,
-          event_id: eventData.eventId,
+          event_id: eventData.eventId, // Same as client-side for deduplication
           event_source_url: eventData.eventSourceUrl,
           action_source: 'website',
           user_data: {
             em: hashedEmail,
             ph: hashedPhone,
             fn: hashedName,
+            // Include Facebook cookies for better attribution
+            fbp: eventData.fbp,
+            fbc: eventData.fbc,
+            // Include IP and user agent for improved event matching
+            client_ip_address: clientIp,
+            client_user_agent: userAgent,
           },
           custom_data: eventData.customData || {},
         },

@@ -17,6 +17,7 @@ import {
 import { calculateEstimate } from '../services/pricingService';
 import { createPartialQuote, completeQuote } from '../services/databaseService';
 import { sendEstimateEmail, sendConfirmationEmail } from '../services/emailService';
+import { trackLead, trackCompleteRegistration, trackViewContent } from '../services/metaEventsService';
 
 // --- CONFIGURATION ---
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiamFja2h1bnRlcmtpbmciLCJhIjoiY21mbmhocHVnMDN5dDJycTd6NXJsbzdvdCJ9.J9o8ZqveZnan_BjJJEAfpg';
@@ -336,6 +337,11 @@ export default function PodEstimatorPage() {
           console.error('Failed to send estimate email:', err);
         });
 
+        // Track Meta Lead event (email captured, estimate sent)
+        trackLead(contact.email, (pricing.low + pricing.high) / 2).catch(err => {
+          console.error('Failed to track Meta Lead event:', err);
+        });
+
         setToastMessage(`Estimate sent to ${contact.email}`);
         setShowToast(true);
       } catch (error) {
@@ -380,6 +386,17 @@ export default function PodEstimatorPage() {
           }
         ).catch(err => {
           console.error('Failed to send confirmation email:', err);
+        });
+
+        // Track Meta CompleteRegistration event (full contact info submitted)
+        trackCompleteRegistration(
+          completedQuote.id,
+          contact.email,
+          contact.phone,
+          contact.fullName,
+          (estimate?.low || 0 + estimate?.high || 0) / 2
+        ).catch(err => {
+          console.error('Failed to track Meta CompleteRegistration event:', err);
         });
 
         setToastMessage('Quote saved successfully!');

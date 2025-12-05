@@ -20,7 +20,7 @@ import {
 } from '../services/funnelSessionService';
 
 // Meta Tracking (Dual: Client Pixel + Server CAPI)
-import { trackViewContent, trackLead } from '../services/metaEventsService';
+import { trackViewContent } from '../services/metaEventsService';
 
 // Step names for tracking
 export const POD_STEP_NAMES = [
@@ -183,11 +183,9 @@ export function PodFormProvider({ children }: { children: ReactNode }) {
     // Sync to Supabase
     await updateFunnelProgress(sessionId, step, formData, funnelType);
 
-    // Handle email step (step 5) - Track Lead event for Meta
+    // Handle email step (step 5) - Update email in Supabase
     if (step === 5 && formData.contact.email) {
       await updateFunnelEmail(sessionId, formData.contact.email);
-      // Track Lead event for Meta (key conversion event)
-      await trackLead(formData.contact.email, 'pod', sessionId);
     }
   }, [sessionId, formData]);
 

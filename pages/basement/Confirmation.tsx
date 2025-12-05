@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { trackLead } from '../../services/metaEventsService';
 
 interface LocationState {
   email?: string;
@@ -14,6 +15,15 @@ export default function BasementConfirmation() {
   const location = useLocation();
   const state = location.state as LocationState | null;
   const email = state?.email || '';
+  const hasTrackedLead = useRef(false);
+
+  // Track Lead event when confirmation page is loaded (after successful submission)
+  useEffect(() => {
+    if (email && state?.submitted && !hasTrackedLead.current) {
+      hasTrackedLead.current = true;
+      trackLead(email, 'basement');
+    }
+  }, [email, state?.submitted]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">

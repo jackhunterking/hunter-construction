@@ -18,7 +18,7 @@ import {
 } from '../services/funnelSessionService';
 
 // Meta Tracking (Dual: Client Pixel + Server CAPI)
-import { trackViewContent, trackLead } from '../services/metaEventsService';
+import { trackViewContent } from '../services/metaEventsService';
 
 // Step names for tracking
 export const BASEMENT_STEP_NAMES = [
@@ -129,11 +129,9 @@ export function BasementFormProvider({ children }: { children: ReactNode }) {
     // Sync to Supabase
     await updateFunnelProgress(sessionId, step, formData, funnelType);
 
-    // Handle email step (step 7) - Track Lead event for Meta
+    // Handle email step (step 7) - Update email in Supabase
     if (step === 7 && formData.email) {
       await updateFunnelEmail(sessionId, formData.email);
-      // Track Lead event for Meta (key conversion event)
-      await trackLead(formData.email, 'basement', sessionId);
     }
   }, [sessionId, formData]);
 

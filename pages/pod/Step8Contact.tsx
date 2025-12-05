@@ -81,6 +81,7 @@ export default function Step8Contact() {
         state: { 
           fullName: formData.contact.fullName,
           address: formData.address.fullAddress,
+          email: formData.contact.email,
           submitted: true 
         } 
       });

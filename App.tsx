@@ -64,26 +64,20 @@ export default function App() {
   // Track PageView on SPA route changes (skip initial - already fired in HTML)
   useEffect(() => {
     // Skip the first render - HTML already fired the initial PageView
+    // We don't call trackPageView here because it would fire a duplicate browser event
+    // The index.html PageView is sufficient for initial page load
     if (isFirstRender.current) {
       isFirstRender.current = false;
-      // Still send server-side event for initial page for CAPI deduplication
-      trackPageView(location.pathname).catch(err => {
-        console.error('[Meta CAPI] Failed to track server-side PageView:', err);
-      });
       return;
     }
 
-    if (typeof window !== 'undefined' && window.fbq) {
-      // Client-side PageView for SPA navigation
-      window.fbq('track', 'PageView');
-      
-      // Server-side PageView (Conversions API)
-      trackPageView(location.pathname).catch(err => {
-        console.error('[Meta CAPI] Failed to track server-side PageView:', err);
-      });
-      
-      console.log('[Meta Events] PageView tracked for:', location.pathname);
-    }
+    // For SPA navigation (subsequent route changes), fire both browser and server events
+    // These share the same eventId for proper deduplication
+    trackPageView(location.pathname).catch(err => {
+      console.error('[Meta CAPI] Failed to track PageView:', err);
+    });
+    
+    console.log('[Meta Events] PageView tracked for:', location.pathname);
   }, [location.pathname]);
 
   return (

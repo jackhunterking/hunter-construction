@@ -42,7 +42,6 @@ serve(async (req) => {
     const META_PIXEL_ID = Deno.env.get('META_PIXEL_ID');
     const META_ACCESS_TOKEN = Deno.env.get('META_ACCESS_TOKEN');
     const META_API_VERSION = Deno.env.get('META_API_VERSION') || 'v21.0';
-    const META_TEST_EVENT_CODE = Deno.env.get('META_TEST_EVENT_CODE');
 
     // Debug: Log configuration (without sensitive data)
     console.log('[Meta CAPI] Configuration:', {
@@ -50,8 +49,6 @@ serve(async (req) => {
       pixelIdLength: META_PIXEL_ID?.length,
       hasAccessToken: !!META_ACCESS_TOKEN,
       apiVersion: META_API_VERSION,
-      hasTestCode: !!META_TEST_EVENT_CODE,
-      testCode: META_TEST_EVENT_CODE || 'NOT SET',
     });
 
     // Initialize Supabase client
@@ -114,7 +111,6 @@ serve(async (req) => {
     }
 
     // Build the Meta CAPI payload
-    // CRITICAL: test_event_code MUST be at root level of body, NOT in URL
     const metaPayload: Record<string, any> = {
       data: [
         {
@@ -128,12 +124,6 @@ serve(async (req) => {
         },
       ],
     };
-
-    // Add test_event_code to BODY (not URL) per Facebook documentation
-    if (META_TEST_EVENT_CODE) {
-      metaPayload.test_event_code = META_TEST_EVENT_CODE;
-      console.log('[Meta CAPI] Test event code added to payload:', META_TEST_EVENT_CODE);
-    }
 
     console.log('[Meta CAPI] Full payload:', JSON.stringify(metaPayload, null, 2));
 

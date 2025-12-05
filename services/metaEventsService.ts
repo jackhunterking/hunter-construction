@@ -77,21 +77,8 @@ export async function sendMetaEvent(
     // 1. Fire client-side Pixel event (immediate)
     if (typeof window !== 'undefined' && window.fbq) {
       try {
-        const pixelId = import.meta.env.VITE_META_PIXEL_ID;
-        const testEventCode = import.meta.env.VITE_META_TEST_EVENT_CODE; // Optional: for testing
-        
-        if (testEventCode && pixelId) {
-          // Use trackSingle with test_event_code for testing
-          window.fbq('trackSingle', pixelId, eventName, customData || {}, { 
-            eventID: eventId,
-            test_event_code: testEventCode 
-          });
-          console.log(`[Meta Pixel] Fired TEST ${eventName} event with ID: ${eventId} (test code: ${testEventCode})`);
-        } else {
-          // Normal tracking without test code
-          window.fbq('track', eventName, customData || {}, { eventID: eventId });
-          console.log(`[Meta Pixel] Fired ${eventName} event with ID: ${eventId}`);
-        }
+        window.fbq('track', eventName, customData || {}, { eventID: eventId });
+        console.log(`[Meta Pixel] Fired ${eventName} event with ID: ${eventId}`);
       } catch (pixelError) {
         console.warn('Meta Pixel failed:', pixelError);
         // Continue to server-side even if pixel fails

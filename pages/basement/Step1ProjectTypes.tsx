@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StepContainer } from '../../components/StepContainer';
 import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { useBasementForm, BASEMENT_TOTAL_STEPS } from '../../contexts/BasementFormContext';
 import { BasementProjectType } from '../../types/basement';
 import { PROJECT_TYPE_OPTIONS } from '../../constants/basement';
+import { trackViewContent } from '../../services/metaCapiService';
 
 export default function Step1ProjectTypes() {
   const navigate = useNavigate();
-  const { formData, updateFormData, completeStep, trackStepView, isInitialized } = useBasementForm();
+  const { formData, updateFormData, completeStep, trackStepView, sessionId, isInitialized } = useBasementForm();
+  const hasTrackedViewContent = useRef(false);
 
   // Track step view on mount
   useEffect(() => {
@@ -16,6 +18,14 @@ export default function Step1ProjectTypes() {
       trackStepView(1);
     }
   }, [isInitialized, trackStepView]);
+
+  // Track Meta CAPI ViewContent event (fire once per session)
+  useEffect(() => {
+    if (isInitialized && sessionId && !hasTrackedViewContent.current) {
+      hasTrackedViewContent.current = true;
+      trackViewContent(sessionId, 'basement', 'Basement Suite - Start');
+    }
+  }, [isInitialized, sessionId]);
 
   // Toggle project type selection (multi-select)
   const toggleProjectType = (type: BasementProjectType) => {

@@ -5,6 +5,7 @@ import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { usePodForm, POD_TOTAL_STEPS } from '../../contexts/PodFormContext';
 import { completeQuote } from '../../services/databaseService';
 import { sendConfirmationEmail } from '../../services/emailService';
+import { trackCompleteRegistration } from '../../services/metaCapiService';
 
 // Phone validation helper
 const isValidPhone = (phone: string) => {
@@ -14,7 +15,7 @@ const isValidPhone = (phone: string) => {
 
 export default function Step8Contact() {
   const navigate = useNavigate();
-  const { formData, updateContact, completeStep, trackStepView, finalizeFunnel, isInitialized } = usePodForm();
+  const { formData, updateContact, completeStep, trackStepView, finalizeFunnel, sessionId, isInitialized } = usePodForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -59,6 +60,21 @@ export default function Step8Contact() {
       ).catch(err => {
         console.error('Failed to send confirmation email:', err);
       });
+
+      // Track Meta CAPI CompleteRegistration event
+      if (sessionId) {
+        trackCompleteRegistration(
+          sessionId,
+          'pod',
+          {
+            email: formData.contact.email,
+            phone: formData.contact.phone,
+            firstName: formData.contact.fullName.split(' ')[0],
+            lastName: formData.contact.fullName.split(' ').slice(1).join(' ') || undefined,
+          },
+          'Pod Estimator - Form Complete'
+        );
+      }
 
       setToastMessage('Quote saved successfully!');
       setShowToast(true);

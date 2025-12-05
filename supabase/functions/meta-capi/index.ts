@@ -1,25 +1,26 @@
 /**
- * Meta Conversions API (CAPI) Edge Function
- * Server-side tracking for Facebook/Meta ads
- * 
- * This function receives events from the frontend and forwards them to
- * Meta's Conversions API for server-side event tracking.
- * 
- * Events are deduplicated with client-side pixel using shared event_id.
+ * Meta Conversions API (CAPI) Edge Function - V2.1
+ *
+ * - Accepts raw and/or pre-hashed identifiers from the frontend
+ * - Hashes email / phone / name if sent raw
+ * - Generates fbc from fbclid if missing
+ * - Generates fbp if missing
+ * - Keeps Supabase logging for observability
+ * - Uses Deno.serve and npm:@supabase/supabase-js
+ * - Adds minimal payload validation (400 on invalid input)
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "npm:@supabase/supabase-js@2.46.1";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface MetaEventRequest {
   eventName: string;
   eventId: string;
-  eventTime: number;
+  eventTime: number;          // UNIX timestamp in seconds
   eventSourceUrl: string;
   userData?: {
     email?: string;
@@ -30,6 +31,7 @@ interface MetaEventRequest {
     fbc?: string;
     firstName?: string;
     lastName?: string;
+    externalId?: string;      // will be hashed if provided
   };
   customData?: Record<string, any>;
   funnelSessionId?: string;
@@ -47,6 +49,7 @@ interface MetaCAPIPayload {
       ph?: string[];
       fn?: string[];
       ln?: string[];
+      external_id?: string[];
       client_ip_address?: string;
       client_user_agent?: string;
       fbp?: string;
@@ -57,97 +60,209 @@ interface MetaCAPIPayload {
   test_event_code?: string;
 }
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+/**
+ * Helpers
+ */
+
+async function sha256Hex(value: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(value);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function normalizeEmail(email: string | undefined | null): string {
+  if (!email) return "";
+  return email.trim().toLowerCase();
+}
+
+function normalizePhone(phone: string | undefined | null): string {
+  if (!phone) return "";
+  let cleaned = phone.trim();
+  if (!cleaned) return "";
+  // Keep only + and digits
+  cleaned = cleaned.replace(/[^\d+]/g, "");
+  if (cleaned.startsWith("+")) {
+    // Ensure only one + at start and digits after
+    return "+" + cleaned.slice(1).replace(/\D/g, "");
+  }
+  // No leading +: keep digits only
+  return cleaned.replace(/\D/g, "");
+}
+
+function extractFbclid(urlStr: string): string | null {
+  try {
+    const url = new URL(urlStr);
+    return url.searchParams.get("fbclid");
+  } catch {
+    return null;
+  }
+}
+
+function generateFbp(eventTime: number): string {
+  const random = Math.floor(Math.random() * 1e10); // pseudo-random browser id
+  return `fb.1.${eventTime}.${random}`;
+}
+
+function generateFbcFromFbclid(eventTime: number, fbclid: string): string {
+  // Meta format: fb.1.<timestamp>.<fbclid>
+  return `fb.1.${eventTime}.${fbclid}`;
+}
+
+function badRequest(message: string) {
+  return new Response(JSON.stringify({ success: false, error: message }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 400,
+  });
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Get Meta credentials from environment
-    const META_PIXEL_ID = Deno.env.get('META_PIXEL_ID');
-    const META_ACCESS_TOKEN = Deno.env.get('META_ACCESS_TOKEN');
-    const META_TEST_EVENT_CODE = Deno.env.get('META_TEST_EVENT_CODE'); // Optional: for testing
-    
+    // Env vars
+    const META_PIXEL_ID = Deno.env.get("META_PIXEL_ID");
+    const META_ACCESS_TOKEN = Deno.env.get("META_ACCESS_TOKEN");
+    const META_TEST_EVENT_CODE = Deno.env.get("META_TEST_EVENT_CODE"); // Optional
+
     if (!META_PIXEL_ID || !META_ACCESS_TOKEN) {
-      console.error('Meta credentials not configured');
+      console.error("Meta credentials not configured");
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Meta credentials not configured' 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-          status: 500 
-        }
+        JSON.stringify({ success: false, error: "Meta credentials not configured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 },
       );
     }
 
-    // Parse request payload
-    const payload: MetaEventRequest = await req.json();
-    
-    // Extract client information from request headers
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     req.headers.get('x-real-ip') || 
-                     req.headers.get('cf-connecting-ip') || // Cloudflare
-                     '';
-    const userAgent = req.headers.get('user-agent') || '';
+    // Parse and minimally validate payload
+    let payload: MetaEventRequest;
+    try {
+      payload = await req.json();
+    } catch {
+      return badRequest("Invalid JSON body");
+    }
 
-    // Build user_data object with hashed values
-    const userData: MetaCAPIPayload['data'][0]['user_data'] = {
+    if (!payload || typeof payload !== "object") {
+      return badRequest("Missing payload");
+    }
+    if (!payload.eventName || typeof payload.eventName !== "string") {
+      return badRequest("eventName is required");
+    }
+    if (!payload.eventId || typeof payload.eventId !== "string") {
+      return badRequest("eventId is required");
+    }
+    if (
+      typeof payload.eventTime !== "number" ||
+      !Number.isFinite(payload.eventTime) ||
+      payload.eventTime <= 0
+    ) {
+      return badRequest("eventTime (UNIX seconds) is required and must be > 0");
+    }
+    if (!payload.eventSourceUrl || typeof payload.eventSourceUrl !== "string") {
+      return badRequest("eventSourceUrl is required");
+    }
+
+    // Extract client context
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      req.headers.get("cf-connecting-ip") || // Cloudflare
+      "";
+    const userAgent = req.headers.get("user-agent") || "";
+
+    // ---------- Build user_data (with hashing + generation) ----------
+    const userData: MetaCAPIPayload["data"][0]["user_data"] = {
       client_ip_address: clientIp || undefined,
       client_user_agent: userAgent || undefined,
-      fbp: payload.userData?.fbp,
-      fbc: payload.userData?.fbc,
     };
 
-    // Add hashed email if available
+    // fbp / fbc handling
+    let fbp = payload.userData?.fbp || undefined;
+    let fbc = payload.userData?.fbc || undefined;
+
+    const fbclid = extractFbclid(payload.eventSourceUrl);
+
+    // If fbc not provided but fbclid exists in the URL, generate fbc
+    if (!fbc && fbclid) {
+      fbc = generateFbcFromFbclid(payload.eventTime, fbclid);
+    }
+
+    // If fbp not provided, generate a pseudo browser id
+    if (!fbp) {
+      fbp = generateFbp(payload.eventTime);
+    }
+
+    if (fbp) userData.fbp = fbp;
+    if (fbc) userData.fbc = fbc;
+
+    // Email: prefer pre-hashed if present, otherwise hash normalized raw email
     if (payload.userData?.hashedEmail) {
       userData.em = [payload.userData.hashedEmail];
+    } else if (payload.userData?.email) {
+      const normalizedEmail = normalizeEmail(payload.userData.email);
+      if (normalizedEmail) {
+        userData.em = [await sha256Hex(normalizedEmail)];
+      }
     }
 
-    // Add hashed phone if available
+    // Phone: prefer pre-hashed if present, otherwise normalize + hash
     if (payload.userData?.hashedPhone) {
       userData.ph = [payload.userData.hashedPhone];
+    } else if (payload.userData?.phone) {
+      const normalizedPhone = normalizePhone(payload.userData.phone);
+      if (normalizedPhone) {
+        userData.ph = [await sha256Hex(normalizedPhone)];
+      }
     }
 
-    // Add hashed first name if available
+    // First name (always hash raw)
     if (payload.userData?.firstName) {
-      // Hash first name (lowercase, then SHA-256)
-      const encoder = new TextEncoder();
-      const data = encoder.encode(payload.userData.firstName.toLowerCase().trim());
-      const hash = await crypto.subtle.digest('SHA-256', data);
-      const hashedFn = Array.from(new Uint8Array(hash))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-      userData.fn = [hashedFn];
+      const normFn = payload.userData.firstName.toLowerCase().trim();
+      if (normFn) {
+        userData.fn = [await sha256Hex(normFn)];
+      }
     }
 
-    // Add hashed last name if available
+    // Last name (always hash raw)
     if (payload.userData?.lastName) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(payload.userData.lastName.toLowerCase().trim());
-      const hash = await crypto.subtle.digest('SHA-256', data);
-      const hashedLn = Array.from(new Uint8Array(hash))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-      userData.ln = [hashedLn];
+      const normLn = payload.userData.lastName.toLowerCase().trim();
+      if (normLn) {
+        userData.ln = [await sha256Hex(normLn)];
+      }
     }
 
-    // Build CAPI payload
+    // external_id – hash if provided or fallback to funnelSessionId
+    if (payload.userData?.externalId) {
+      const ext = payload.userData.externalId.toString().trim();
+      if (ext) {
+        userData.external_id = [await sha256Hex(ext)];
+      }
+    } else if (payload.funnelSessionId) {
+      const ext = payload.funnelSessionId.toString().trim();
+      if (ext) {
+        userData.external_id = [await sha256Hex(ext)];
+      }
+    }
+
+    // ---------- Build CAPI payload ----------
     const capiPayload: MetaCAPIPayload = {
-      data: [{
-        event_name: payload.eventName,
-        event_time: payload.eventTime,
-        event_id: payload.eventId,
-        event_source_url: payload.eventSourceUrl,
-        action_source: 'website',
-        user_data: userData,
-        custom_data: payload.customData,
-      }],
+      data: [
+        {
+          event_name: payload.eventName,
+          event_time: payload.eventTime,
+          event_id: payload.eventId,
+          event_source_url: payload.eventSourceUrl,
+          action_source: "website",
+          user_data: userData,
+          custom_data: payload.customData,
+        },
+      ],
     };
 
-    // Add test event code if configured (for debugging in Events Manager)
     if (META_TEST_EVENT_CODE) {
       capiPayload.test_event_code = META_TEST_EVENT_CODE;
     }
@@ -156,24 +271,23 @@ serve(async (req) => {
     const metaResponse = await fetch(
       `https://graph.facebook.com/v18.0/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(capiPayload),
-      }
+      },
     );
 
-    const metaResult = await metaResponse.json();
+    const metaResult = await metaResponse.json().catch(() => ({}));
 
-    // Initialize Supabase client for logging
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    // ---------- Supabase logging ----------
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (supabaseUrl && supabaseServiceKey) {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-      // Log event to meta_events table for debugging and analytics
       try {
-        await supabase.from('meta_events').insert({
+        await supabase.from("meta_events").insert({
           event_name: payload.eventName,
           event_id: payload.eventId,
           funnel_session_id: payload.funnelSessionId || null,
@@ -181,19 +295,21 @@ serve(async (req) => {
           event_time: new Date(payload.eventTime * 1000).toISOString(),
           event_source_url: payload.eventSourceUrl,
           user_data: {
-            has_email: !!payload.userData?.hashedEmail,
-            has_phone: !!payload.userData?.hashedPhone,
-            has_fbp: !!payload.userData?.fbp,
-            has_fbc: !!payload.userData?.fbc,
-            client_ip: clientIp ? clientIp.substring(0, 10) + '...' : null, // Truncated for privacy
+            // only flags / partial info for privacy
+            has_email: !!userData.em,
+            has_phone: !!userData.ph,
+            has_fbp: !!userData.fbp,
+            has_fbc: !!userData.fbc,
+            has_external_id: !!userData.external_id,
+            client_ip: clientIp ? clientIp.substring(0, 10) + "..." : null,
           },
           custom_data: payload.customData || {},
           capi_response: metaResult,
-          processing_status: metaResponse.ok ? 'success' : 'failed',
+          processing_status: metaResponse.ok ? "success" : "failed",
         });
       } catch (dbError) {
-        console.error('Error logging to database:', dbError);
-        // Don't fail the request if logging fails
+        console.error("Error logging to database:", dbError);
+        // Non-fatal
       }
     }
 
@@ -201,31 +317,25 @@ serve(async (req) => {
     console.log(`[Meta CAPI] ${payload.eventName}`, {
       eventId: payload.eventId,
       success: metaResponse.ok,
-      events_received: metaResult.events_received,
+      events_received: metaResult?.events_received,
     });
 
     return new Response(
-      JSON.stringify({ 
-        success: metaResponse.ok, 
-        events_received: metaResult.events_received,
-        fbtrace_id: metaResult.fbtrace_id,
+      JSON.stringify({
+        success: metaResponse.ok,
+        events_received: metaResult?.events_received,
+        fbtrace_id: metaResult?.fbtrace_id,
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: metaResponse.ok ? 200 : 500,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: metaResponse.ok ? 200 : 500 },
     );
   } catch (error) {
-    console.error('Meta CAPI error:', error);
+    console.error("Meta CAPI error:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-        status: 500 
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 },
     );
   }
 });

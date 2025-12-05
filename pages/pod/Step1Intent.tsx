@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StepContainer } from '../../components/StepContainer';
 import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { usePodForm, POD_TOTAL_STEPS } from '../../contexts/PodFormContext';
 import { USE_CASE_OPTIONS } from '../../constants';
+import { trackViewContent } from '../../services/metaCapiService';
 
 export default function Step1Intent() {
   const navigate = useNavigate();
-  const { formData, updateConfig, completeStep, trackStepView, isInitialized } = usePodForm();
+  const { formData, updateConfig, completeStep, trackStepView, sessionId, isInitialized } = usePodForm();
+  const hasTrackedViewContent = useRef(false);
 
   // Track step view on mount
   useEffect(() => {
@@ -15,6 +17,14 @@ export default function Step1Intent() {
       trackStepView(1);
     }
   }, [isInitialized, trackStepView]);
+
+  // Track Meta CAPI ViewContent event (fire once per session)
+  useEffect(() => {
+    if (isInitialized && sessionId && !hasTrackedViewContent.current) {
+      hasTrackedViewContent.current = true;
+      trackViewContent(sessionId, 'pod', 'Pod Estimator - Start');
+    }
+  }, [isInitialized, sessionId]);
 
   const handleNext = async () => {
     await completeStep(1);

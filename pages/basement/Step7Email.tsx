@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { StepContainer } from '../../components/StepContainer';
 import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { useBasementForm, BASEMENT_TOTAL_STEPS } from '../../contexts/BasementFormContext';
+import { trackLead } from '../../services/metaCapiService';
 
 // Email validation helper
 const isValidEmail = (email: string) => {
@@ -11,7 +12,7 @@ const isValidEmail = (email: string) => {
 
 export default function Step7Email() {
   const navigate = useNavigate();
-  const { formData, updateFormData, completeStep, trackStepView, isInitialized } = useBasementForm();
+  const { formData, updateFormData, completeStep, trackStepView, sessionId, isInitialized } = useBasementForm();
 
   // Track step view on mount
   useEffect(() => {
@@ -21,6 +22,11 @@ export default function Step7Email() {
   }, [isInitialized, trackStepView]);
 
   const handleNext = async () => {
+    // Track Meta CAPI Lead event when email is captured
+    if (sessionId && formData.email) {
+      trackLead(sessionId, 'basement', formData.email, 'Basement Suite - Email Capture');
+    }
+    
     await completeStep(7);
     navigate('/basement-suite/step-8');
   };

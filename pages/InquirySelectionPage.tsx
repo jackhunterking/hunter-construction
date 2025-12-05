@@ -14,7 +14,7 @@ export default function InquirySelectionPage() {
       title: 'Backyard Pod',
       description: 'Get an instant estimate for a 160 sq ft no-permit backyard pod',
       icon: '🏡',
-      route: '/pod',
+      route: '/pod/step-1',
       features: ['160 sq ft', 'No permit required', 'Quick installation', 'Multiple uses'],
     },
     {
@@ -22,7 +22,7 @@ export default function InquirySelectionPage() {
       title: 'Basement Suite',
       description: 'Request a quote for basement renovation or rental suite',
       icon: '🏠',
-      route: '/basement-suite',
+      route: '/basement-suite/step-1',
       features: ['Full renovation', 'Rental suite ready', 'Custom design', 'Expert consultation'],
     },
   ];

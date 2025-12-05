@@ -113,7 +113,6 @@ export interface ContactData {
 export interface EstimateResult {
   low: number;
   high: number;
-  currency: string;
   summary: string;
 }
 

@@ -18,7 +18,6 @@ export interface QuoteData {
   longitude: number | null;
   estimate_low: number;
   estimate_high: number;
-  currency: string;
   status: string;
   notes: string | null;
 }
@@ -53,7 +52,6 @@ export async function createQuote(
       longitude: address.lng,
       estimate_low: estimate.low,
       estimate_high: estimate.high,
-      currency: 'CAD',
       status: 'submitted',
       notes: null,
     };
@@ -75,7 +73,6 @@ export async function createQuote(
       longitude: address.lng,
       estimate_low: estimate.low,
       estimate_high: estimate.high,
-      currency: 'CAD',
     })
     .select()
     .single();
@@ -164,7 +161,6 @@ export async function createPartialQuote(
       longitude: null,
       estimate_low: estimate.low,
       estimate_high: estimate.high,
-      currency: 'CAD',
       status: 'estimate_sent',
       notes: null,
     };
@@ -181,7 +177,6 @@ export async function createPartialQuote(
       additional_details: config.additionalDetails || '',
       estimate_low: estimate.low,
       estimate_high: estimate.high,
-      currency: 'CAD',
       status: 'estimate_sent',
       // Contact info fields are nullable for this stage
       full_name: null,
@@ -229,7 +224,6 @@ export async function completeQuote(
       longitude: address.lng,
       estimate_low: 0,
       estimate_high: 0,
-      currency: 'CAD',
       status: 'submitted',
       notes: null,
     };

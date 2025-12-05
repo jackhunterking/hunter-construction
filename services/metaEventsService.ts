@@ -147,8 +147,6 @@ export async function trackLead(
   
   const customData = {
     content_category: funnelType,
-    value: 0,
-    currency: 'CAD',
   };
   
   // Client-side: Meta Pixel with Advanced Matching
@@ -207,8 +205,6 @@ export async function trackCompleteRegistration(
   const customData = {
     content_category: funnelType,
     status: 'complete',
-    value: 0,
-    currency: 'CAD',
   };
   
   // Client-side: Meta Pixel with full user data

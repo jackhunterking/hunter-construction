@@ -17,7 +17,6 @@ export const calculateConstructionEstimate = (
     return {
       low: 50000,
       high: 200000,
-      currency: 'CAD',
     };
   }
 
@@ -71,7 +70,6 @@ export const calculateConstructionEstimate = (
   return {
     low,
     high,
-    currency: 'CAD',
   };
 };
 
@@ -105,6 +103,5 @@ export const calculateEstimate = (config: PodConfiguration): Omit<EstimateResult
   return {
     low,
     high,
-    currency: 'CAD',
   };
 };

@@ -40,22 +40,6 @@ export interface MetaEventData {
 }
 
 /**
- * Normalize URL to ensure consistent event_source_url between browser pixel and server CAPI
- * This is critical for Meta's deduplication to work properly
- */
-function normalizeEventSourceUrl(): string {
-  const url = new URL(window.location.href);
-  // Remove trailing slash from pathname (except for root)
-  if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
-    url.pathname = url.pathname.slice(0, -1);
-  }
-  // Remove hash and search params for consistency
-  url.hash = '';
-  url.search = '';
-  return url.toString();
-}
-
-/**
  * Get Facebook cookies for better attribution
  */
 function getFacebookCookies(): { fbp?: string; fbc?: string } {
@@ -75,15 +59,12 @@ function getFacebookCookies(): { fbp?: string; fbc?: string } {
 /**
  * Send Meta event to both client-side Pixel AND server-side Conversions API
  * Uses the same eventId for deduplication per Facebook best practices
- * 
- * @param sourceUrl - Optional explicit URL for event_source_url (use for SPA routing)
  */
 export async function sendMetaEvent(
   eventName: MetaEventName,
   userData: { email: string; phone?: string; fullName?: string },
   customData?: Record<string, any>,
-  quoteId?: string,
-  sourceUrl?: string
+  quoteId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Generate unique event ID for deduplication
@@ -93,20 +74,24 @@ export async function sendMetaEvent(
     // 1. Fire client-side Pixel event (immediate)
     if (typeof window !== 'undefined' && window.fbq) {
       try {
-        const pixelId = import.meta.env.VITE_META_PIXEL_ID;
+        // Build event data with Manual Advanced Matching parameters
+        // This is required because Lead fires on confirmation page with no visible form fields
+        const pixelEventData: Record<string, any> = { ...customData };
         
-        if (META_CONFIG.TEST_MODE_ENABLED && pixelId) {
-          // TEST MODE: Use trackSingle with test_event_code
-          window.fbq('trackSingle', pixelId, eventName, customData || {}, {
-            eventID: eventId,
-            test_event_code: META_CONFIG.TEST_EVENT_CODE
-          });
-          console.log(`[Meta Pixel] Fired TEST ${eventName} event with ID: ${eventId} (test code: ${META_CONFIG.TEST_EVENT_CODE})`);
-        } else {
-          // PRODUCTION MODE: Normal tracking
-          window.fbq('track', eventName, customData || {}, { eventID: eventId });
-          console.log(`[Meta Pixel] Fired ${eventName} event with ID: ${eventId}`);
+        // Add user data for Manual Advanced Matching (Meta will auto-hash these)
+        if (userData.email) {
+          pixelEventData.em = userData.email.toLowerCase().trim();
         }
+        if (userData.phone) {
+          pixelEventData.ph = userData.phone.replace(/\D/g, ''); // Remove non-digits
+        }
+        if (userData.fullName) {
+          pixelEventData.fn = userData.fullName.toLowerCase().trim();
+        }
+        
+        // Fire the event using standard track method
+        window.fbq('track', eventName, pixelEventData, { eventID: eventId });
+        console.log(`[Meta Pixel] Fired ${eventName} event with ID: ${eventId}`, { hasEmail: !!userData.email });
       } catch (pixelError) {
         console.warn('Meta Pixel failed:', pixelError);
         // Continue to server-side even if pixel fails
@@ -123,8 +108,7 @@ export async function sendMetaEvent(
       customData,
       quoteId,
       fbp,
-      fbc,
-      sourceUrl
+      fbc
     );
 
     return result;
@@ -183,12 +167,11 @@ async function sendServerSideEvent(
   customData?: Record<string, any>,
   quoteId?: string,
   fbp?: string,
-  fbc?: string,
-  sourceUrl?: string
+  fbc?: string
 ): Promise<{ success: boolean; error?: string }> {
-  // Use provided sourceUrl if available, otherwise fall back to normalized window.location
-  // This fixes SPA timing issues where window.location may not reflect the current route
-  const eventSourceUrl = sourceUrl || normalizeEventSourceUrl();
+  // Use window.location.href directly - browser pixel does the same
+  // Both should capture the same URL for proper deduplication
+  const eventSourceUrl = window.location.href;
   
   const eventData: MetaEventData = {
     eventName,
@@ -245,13 +228,11 @@ async function sendServerSideEvent(
   return { success: true, ...result };
 }
 
-export async function trackLead(email: string, estimateValue: number, sourceUrl?: string): Promise<void> {
+export async function trackLead(email: string, estimateValue: number): Promise<void> {
   await sendMetaEvent(
     'Lead',
     { email },
-    { value: estimateValue, currency: 'CAD' },
-    undefined, // quoteId
-    sourceUrl
+    { value: estimateValue, currency: 'CAD' }
   );
 }
 

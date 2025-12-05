@@ -18,7 +18,7 @@ export default function BasementConfirmationPage() {
   }
 
   // Track Meta Lead event when confirmation page loads
-  // This ensures event_source_url matches the Custom Conversion rule
+  // Browser pixel automatically captures window.location.href which is correct on this page
   useEffect(() => {
     // Prevent double-firing in React strict mode or on re-renders
     if (hasTrackedLead.current) {
@@ -28,12 +28,7 @@ export default function BasementConfirmationPage() {
     if (state?.email && state?.submitted) {
       hasTrackedLead.current = true;
       
-      // HARDCODE the URL path to avoid React Router timing race conditions
-      // location.pathname may still be '/' when useEffect first fires during SPA navigation
-      const sourceUrl = `${window.location.origin}/basement-suite-confirmation`;
-      console.log('[Meta Lead] Using sourceUrl:', sourceUrl);
-      
-      trackLead(state.email, 0, sourceUrl)
+      trackLead(state.email, 0)
         .then(() => {
           console.log('[Meta Lead] Successfully tracked from confirmation page');
         })

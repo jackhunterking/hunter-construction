@@ -305,6 +305,7 @@ export default function PodEstimatorPage() {
   const isPhase2 = currentStepIndex > STEPS_ORDER.indexOf('RESULT') && currentStepId !== 'SUCCESS';
 
   // Track form step views (both client and server)
+  // Only fire when step changes, NOT on every keystroke
   useEffect(() => {
     if (currentStepId !== 'RESULT' && currentStepId !== 'SUCCESS') {
       trackFormStep(
@@ -317,7 +318,8 @@ export default function PodEstimatorPage() {
         console.error('Failed to track form step:', err);
       });
     }
-  }, [currentStepIndex, currentStepId, contact.email]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepIndex]);
 
   // Auto-hide toast after 4 seconds
   useEffect(() => {

@@ -61,6 +61,7 @@ export default function BasementSuitePage() {
   const currentStepId: BasementStepId = BASEMENT_STEPS_ORDER[currentStepIndex];
 
   // Track form step views (both client and server)
+  // Only fire when step changes, NOT on every keystroke
   useEffect(() => {
     trackFormStep(
       currentStepId,
@@ -71,7 +72,8 @@ export default function BasementSuitePage() {
     ).catch(err => {
       console.error('Failed to track form step:', err);
     });
-  }, [currentStepIndex, currentStepId, formData.email]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepIndex]);
 
   // Auto-hide toast after 4 seconds
   useEffect(() => {

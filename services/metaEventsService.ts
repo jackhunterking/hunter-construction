@@ -40,6 +40,22 @@ export interface MetaEventData {
 }
 
 /**
+ * Normalize URL to ensure consistent event_source_url between browser pixel and server CAPI
+ * This is critical for Meta's deduplication to work properly
+ */
+function normalizeEventSourceUrl(): string {
+  const url = new URL(window.location.href);
+  // Remove trailing slash from pathname (except for root)
+  if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
+    url.pathname = url.pathname.slice(0, -1);
+  }
+  // Remove hash and search params for consistency
+  url.hash = '';
+  url.search = '';
+  return url.toString();
+}
+
+/**
  * Get Facebook cookies for better attribution
  */
 function getFacebookCookies(): { fbp?: string; fbc?: string } {
@@ -165,6 +181,9 @@ async function sendServerSideEvent(
   fbp?: string,
   fbc?: string
 ): Promise<{ success: boolean; error?: string }> {
+  // Use normalized URL to match browser pixel's event_source_url for proper deduplication
+  const normalizedUrl = normalizeEventSourceUrl();
+  
   const eventData: MetaEventData = {
     eventName,
     eventId,
@@ -172,7 +191,7 @@ async function sendServerSideEvent(
     userData,
     customData,
     eventTime: Math.floor(Date.now() / 1000),
-    eventSourceUrl: window.location.href,
+    eventSourceUrl: normalizedUrl,
     fbp,
     fbc,
     // Include test code for server-side if test mode is enabled
@@ -187,6 +206,7 @@ async function sendServerSideEvent(
   console.log('[Meta CAPI] Event data:', {
     eventName,
     eventId,
+    eventSourceUrl: normalizedUrl,
     testMode: META_CONFIG.TEST_MODE_ENABLED,
     userData: { email: userData.email }
   });

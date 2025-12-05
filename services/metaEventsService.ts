@@ -75,12 +75,15 @@ function getFacebookCookies(): { fbp?: string; fbc?: string } {
 /**
  * Send Meta event to both client-side Pixel AND server-side Conversions API
  * Uses the same eventId for deduplication per Facebook best practices
+ * 
+ * @param sourceUrl - Optional explicit URL for event_source_url (use for SPA routing)
  */
 export async function sendMetaEvent(
   eventName: MetaEventName,
   userData: { email: string; phone?: string; fullName?: string },
   customData?: Record<string, any>,
-  quoteId?: string
+  quoteId?: string,
+  sourceUrl?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Generate unique event ID for deduplication
@@ -120,7 +123,8 @@ export async function sendMetaEvent(
       customData,
       quoteId,
       fbp,
-      fbc
+      fbc,
+      sourceUrl
     );
 
     return result;
@@ -179,10 +183,12 @@ async function sendServerSideEvent(
   customData?: Record<string, any>,
   quoteId?: string,
   fbp?: string,
-  fbc?: string
+  fbc?: string,
+  sourceUrl?: string
 ): Promise<{ success: boolean; error?: string }> {
-  // Use normalized URL to match browser pixel's event_source_url for proper deduplication
-  const normalizedUrl = normalizeEventSourceUrl();
+  // Use provided sourceUrl if available, otherwise fall back to normalized window.location
+  // This fixes SPA timing issues where window.location may not reflect the current route
+  const eventSourceUrl = sourceUrl || normalizeEventSourceUrl();
   
   const eventData: MetaEventData = {
     eventName,
@@ -191,7 +197,7 @@ async function sendServerSideEvent(
     userData,
     customData,
     eventTime: Math.floor(Date.now() / 1000),
-    eventSourceUrl: normalizedUrl,
+    eventSourceUrl,
     fbp,
     fbc,
     // Include test code for server-side if test mode is enabled
@@ -206,7 +212,7 @@ async function sendServerSideEvent(
   console.log('[Meta CAPI] Event data:', {
     eventName,
     eventId,
-    eventSourceUrl: normalizedUrl,
+    eventSourceUrl,
     testMode: META_CONFIG.TEST_MODE_ENABLED,
     userData: { email: userData.email }
   });
@@ -239,11 +245,13 @@ async function sendServerSideEvent(
   return { success: true, ...result };
 }
 
-export async function trackLead(email: string, estimateValue: number): Promise<void> {
+export async function trackLead(email: string, estimateValue: number, sourceUrl?: string): Promise<void> {
   await sendMetaEvent(
     'Lead',
     { email },
-    { value: estimateValue, currency: 'CAD' }
+    { value: estimateValue, currency: 'CAD' },
+    undefined, // quoteId
+    sourceUrl
   );
 }
 

@@ -151,8 +151,8 @@ export async function trackLead(
   
   // Client-side: Meta Pixel with Advanced Matching
   if (window.fbq) {
-    // Re-initialize pixel with user data for Advanced Matching
-    window.fbq('init', META_CONFIG.PIXEL_ID, { em: email });
+    // Set user data for Advanced Matching (without re-initializing pixel)
+    window.fbq('set', 'userData', { em: email });
     window.fbq('track', 'Lead', customData, { eventID: eventId });
   }
   
@@ -209,8 +209,8 @@ export async function trackCompleteRegistration(
   
   // Client-side: Meta Pixel with full user data
   if (window.fbq) {
-    // Re-initialize with all available user data
-    window.fbq('init', META_CONFIG.PIXEL_ID, { 
+    // Set user data for Advanced Matching (without re-initializing pixel)
+    window.fbq('set', 'userData', { 
       em: email,
       ph: phone.replace(/\D/g, ''),
       fn: firstName.toLowerCase(),

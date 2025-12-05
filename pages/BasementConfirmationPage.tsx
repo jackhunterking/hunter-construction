@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
-import { trackLead } from '../services/metaEventsService';
 
 interface ConfirmationState {
   email?: string;
@@ -10,33 +9,11 @@ interface ConfirmationState {
 export default function BasementConfirmationPage() {
   const location = useLocation();
   const state = location.state as ConfirmationState | null;
-  const hasTrackedLead = useRef(false);
 
   // Redirect to form if someone navigates directly to confirmation without submitting
   if (!state?.submitted) {
     return <Navigate to="/basement-suite" replace />;
   }
-
-  // Track Meta Lead event when confirmation page loads
-  // Browser pixel automatically captures window.location.href which is correct on this page
-  useEffect(() => {
-    // Prevent double-firing in React strict mode or on re-renders
-    if (hasTrackedLead.current) {
-      return;
-    }
-
-    if (state?.email && state?.submitted) {
-      hasTrackedLead.current = true;
-      
-      trackLead(state.email, 0)
-        .then(() => {
-          console.log('[Meta Lead] Successfully tracked from confirmation page');
-        })
-        .catch((error) => {
-          console.error('[Meta Lead] Failed to track:', error);
-        });
-    }
-  }, [state?.email, state?.submitted]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans">

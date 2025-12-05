@@ -16,7 +16,6 @@ import {
 } from '../constants/basement';
 import { createBasementInquiry } from '../services/basementDatabaseService';
 import { sendBasementConfirmationEmail, sendBasementSalesNotification } from '../services/emailService';
-import { trackFormStep } from '../services/metaEventsService';
 
 // --- VALIDATION HELPERS ---
 
@@ -59,21 +58,6 @@ export default function BasementSuitePage() {
   const [addressSelected, setAddressSelected] = useState(false);
 
   const currentStepId: BasementStepId = BASEMENT_STEPS_ORDER[currentStepIndex];
-
-  // Track form step views (both client and server)
-  // Only fire when step changes, NOT on every keystroke
-  useEffect(() => {
-    trackFormStep(
-      currentStepId,
-      'basement',
-      currentStepIndex + 1,
-      BASEMENT_STEPS_ORDER.length,
-      formData.email || undefined
-    ).catch(err => {
-      console.error('Failed to track form step:', err);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStepIndex]);
 
   // Auto-hide toast after 4 seconds
   useEffect(() => {

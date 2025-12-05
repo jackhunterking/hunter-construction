@@ -159,12 +159,17 @@ export function trackViewContent(
 }
 
 /**
- * Track Lead event - fired when user submits their email
+ * Track Lead event - fired when user reaches the confirmation page
  */
 export function trackLead(
   funnelSessionId: string,
   funnelType: FunnelType,
-  email: string,
+  userData: {
+    email: string;
+    phone?: string;
+    firstName?: string;
+    lastName?: string;
+  },
   contentName: string
 ): void {
   const fbCookies = getFacebookCookies();
@@ -175,7 +180,10 @@ export function trackLead(
     eventTime: Math.floor(Date.now() / 1000),
     eventSourceUrl: typeof window !== 'undefined' ? window.location.href : '',
     userData: {
-      email,
+      email: userData.email,
+      phone: userData.phone,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
       fbp: fbCookies.fbp || undefined,
       fbc: fbCookies.fbc || undefined,
     },

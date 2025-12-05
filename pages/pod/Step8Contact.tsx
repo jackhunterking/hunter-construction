@@ -15,7 +15,7 @@ const isValidPhone = (phone: string) => {
 
 export default function Step8Contact() {
   const navigate = useNavigate();
-  const { formData, updateContact, completeStep, trackStepView, finalizeFunnel, sessionId, isInitialized } = usePodForm();
+  const { formData, updateContact, completeStep, trackStepView, sessionId, isInitialized } = usePodForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -79,15 +79,15 @@ export default function Step8Contact() {
       setToastMessage('Quote saved successfully!');
       setShowToast(true);
 
-      // Finalize the funnel session
-      await finalizeFunnel();
-
-      // Navigate to confirmation page
+      // Navigate to confirmation page with full lead data for Lead event tracking
       navigate('/pod/confirmation', { 
         state: { 
           fullName: formData.contact.fullName,
           address: formData.address.fullAddress,
           email: formData.contact.email,
+          phone: formData.contact.phone,
+          sessionId: sessionId,
+          funnelType: 'pod',
           submitted: true 
         } 
       });

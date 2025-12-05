@@ -15,7 +15,7 @@ const isValidPhone = (phone: string) => {
 
 export default function Step8Contact() {
   const navigate = useNavigate();
-  const { formData, updateFormData, completeStep, trackStepView, finalizeFunnel, sessionId, isInitialized } = useBasementForm();
+  const { formData, updateFormData, completeStep, trackStepView, sessionId, isInitialized } = useBasementForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -97,13 +97,14 @@ export default function Step8Contact() {
         );
       }
 
-      // Finalize the funnel session
-      await finalizeFunnel();
-
-      // Navigate to confirmation page with email for display
+      // Navigate to confirmation page with full lead data for Lead event tracking
       navigate('/basement-suite-confirmation', { 
         state: { 
           email: formData.email,
+          fullName: formData.fullName,
+          phone: formData.phone,
+          sessionId: sessionId,
+          funnelType: 'basement',
           submitted: true 
         } 
       });

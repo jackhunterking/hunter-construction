@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { StepContainer } from '../../components/StepContainer';
 import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { usePodForm, POD_TOTAL_STEPS } from '../../contexts/PodFormContext';
-import { trackLead } from '../../services/metaCapiService';
 
 // Email validation helper
 const isValidEmail = (email: string) => {
@@ -12,7 +11,7 @@ const isValidEmail = (email: string) => {
 
 export default function Step5Email() {
   const navigate = useNavigate();
-  const { formData, updateContact, completeStep, trackStepView, sessionId, isInitialized } = usePodForm();
+  const { formData, updateContact, completeStep, trackStepView, isInitialized } = usePodForm();
 
   // Track step view on mount
   useEffect(() => {
@@ -22,11 +21,6 @@ export default function Step5Email() {
   }, [isInitialized, trackStepView]);
 
   const handleNext = async () => {
-    // Track Meta CAPI Lead event when email is captured
-    if (sessionId && formData.contact.email) {
-      trackLead(sessionId, 'pod', formData.contact.email, 'Pod Estimator - Email Capture');
-    }
-    
     await completeStep(5);
     navigate('/pod/step-6');
   };

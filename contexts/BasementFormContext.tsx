@@ -17,9 +17,6 @@ import {
   FunnelType,
 } from '../services/funnelSessionService';
 
-// Meta Tracking (Dual: Client Pixel + Server CAPI)
-import { trackViewContent } from '../services/metaEventsService';
-
 // Step names for tracking
 export const BASEMENT_STEP_NAMES = [
   'PROJECT_TYPES',
@@ -148,7 +145,7 @@ export function BasementFormProvider({ children }: { children: ReactNode }) {
     return true;
   }, [completedSteps]);
 
-  // Track step view (Supabase + Meta Pixel/CAPI)
+  // Track step view (Supabase)
   const trackStepView = useCallback(async (step: number) => {
     if (!sessionId) return;
     
@@ -156,17 +153,7 @@ export function BasementFormProvider({ children }: { children: ReactNode }) {
     
     // Supabase funnel tracking
     await trackStepEvent(sessionId, funnelType, step, stepName, 'view');
-    
-    // Meta tracking (Client Pixel + Server CAPI with deduplication)
-    await trackViewContent(
-      'basement',
-      step,
-      stepName,
-      BASEMENT_TOTAL_STEPS,
-      sessionId,
-      formData.email || undefined
-    );
-  }, [sessionId, formData.email]);
+  }, [sessionId]);
 
   // Finalize funnel (on successful submission)
   const finalizeFunnel = useCallback(async () => {

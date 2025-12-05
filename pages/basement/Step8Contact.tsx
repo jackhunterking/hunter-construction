@@ -5,7 +5,6 @@ import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { useBasementForm, BASEMENT_TOTAL_STEPS } from '../../contexts/BasementFormContext';
 import { createBasementInquiry } from '../../services/basementDatabaseService';
 import { sendBasementConfirmationEmail, sendBasementSalesNotification } from '../../services/emailService';
-import { trackCompleteRegistration } from '../../services/metaEventsService';
 
 // Phone validation helper
 const isValidPhone = (phone: string) => {
@@ -15,7 +14,7 @@ const isValidPhone = (phone: string) => {
 
 export default function Step8Contact() {
   const navigate = useNavigate();
-  const { formData, updateFormData, completeStep, trackStepView, finalizeFunnel, isInitialized, sessionId } = useBasementForm();
+  const { formData, updateFormData, completeStep, trackStepView, finalizeFunnel, isInitialized } = useBasementForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -46,15 +45,6 @@ export default function Step8Contact() {
       const inquiry = await createBasementInquiry(formData);
       const inquiryId = inquiry.id;
       const submittedAt = inquiry.created_at;
-
-      // Track CompleteRegistration for Meta (key conversion event)
-      await trackCompleteRegistration(
-        formData.email,
-        formData.fullName,
-        formData.phone,
-        'basement',
-        sessionId || undefined
-      );
 
       // Send both emails in parallel
       try {

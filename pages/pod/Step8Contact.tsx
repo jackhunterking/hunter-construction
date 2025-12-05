@@ -5,7 +5,6 @@ import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { usePodForm, POD_TOTAL_STEPS } from '../../contexts/PodFormContext';
 import { completeQuote } from '../../services/databaseService';
 import { sendConfirmationEmail } from '../../services/emailService';
-import { trackCompleteRegistration } from '../../services/metaEventsService';
 
 // Phone validation helper
 const isValidPhone = (phone: string) => {
@@ -15,7 +14,7 @@ const isValidPhone = (phone: string) => {
 
 export default function Step8Contact() {
   const navigate = useNavigate();
-  const { formData, updateContact, completeStep, trackStepView, finalizeFunnel, isInitialized, sessionId } = usePodForm();
+  const { formData, updateContact, completeStep, trackStepView, finalizeFunnel, isInitialized } = usePodForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -44,15 +43,6 @@ export default function Step8Contact() {
 
       // Complete quote in database
       const completedQuote = await completeQuote(formData.contact.email, formData.address, formData.contact);
-
-      // Track CompleteRegistration for Meta (key conversion event)
-      await trackCompleteRegistration(
-        formData.contact.email,
-        formData.contact.fullName,
-        formData.contact.phone,
-        'pod',
-        sessionId || undefined
-      );
 
       // Send confirmation email
       sendConfirmationEmail(

@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { trackLead } from '../../services/metaEventsService';
 
 interface LocationState {
   fullName?: string;
@@ -18,16 +17,6 @@ export default function PodConfirmation() {
   const state = location.state as LocationState | null;
   const firstName = state?.fullName?.split(' ')[0] || '';
   const address = state?.address || '';
-  const email = state?.email || '';
-  const hasTrackedLead = useRef(false);
-
-  // Track Lead event when confirmation page is loaded (after successful submission)
-  useEffect(() => {
-    if (email && state?.submitted && !hasTrackedLead.current) {
-      hasTrackedLead.current = true;
-      trackLead(email, 'pod');
-    }
-  }, [email, state?.submitted]);
 
   const handleShare = async () => {
     if (navigator.share) {

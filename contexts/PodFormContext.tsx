@@ -19,9 +19,6 @@ import {
   FunnelType,
 } from '../services/funnelSessionService';
 
-// Meta Tracking (Dual: Client Pixel + Server CAPI)
-import { trackViewContent } from '../services/metaEventsService';
-
 // Step names for tracking
 export const POD_STEP_NAMES = [
   'INTENT',
@@ -202,7 +199,7 @@ export function PodFormProvider({ children }: { children: ReactNode }) {
     return true;
   }, [completedSteps]);
 
-  // Track step view (Supabase + Meta Pixel/CAPI)
+  // Track step view (Supabase)
   const trackStepView = useCallback(async (step: number) => {
     if (!sessionId) return;
     
@@ -210,17 +207,7 @@ export function PodFormProvider({ children }: { children: ReactNode }) {
     
     // Supabase funnel tracking
     await trackStepEvent(sessionId, funnelType, step, stepName, 'view');
-    
-    // Meta tracking (Client Pixel + Server CAPI with deduplication)
-    await trackViewContent(
-      'pod',
-      step,
-      stepName,
-      POD_TOTAL_STEPS,
-      sessionId,
-      formData.contact.email || undefined
-    );
-  }, [sessionId, formData.contact.email]);
+  }, [sessionId]);
 
   // Finalize funnel (on successful submission)
   const finalizeFunnel = useCallback(async () => {

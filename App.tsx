@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import InquirySelectionPage from './pages/InquirySelectionPage';
-
-// Meta Tracking
-import { trackPageView } from './services/metaEventsService';
 
 // Basement Suite Funnel (Multi-page)
 import { BasementFormProvider } from './contexts/BasementFormContext';
@@ -93,13 +90,6 @@ function RootRoute() {
  * - /pod/confirmation → Success page
  */
 export default function App() {
-  const location = useLocation();
-
-  // Track PageView on every route change for Meta Pixel + CAPI
-  useEffect(() => {
-    trackPageView();
-  }, [location.pathname]);
-
   return (
     <Routes>
       {/* Landing Pages */}

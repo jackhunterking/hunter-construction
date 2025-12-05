@@ -28,9 +28,9 @@ export default function BasementConfirmationPage() {
     if (state?.email && state?.submitted) {
       hasTrackedLead.current = true;
       
-      // Construct the correct URL using React Router's location.pathname
-      // This fixes SPA timing issues where window.location may not reflect the current route
-      const sourceUrl = `${window.location.origin}${location.pathname}`;
+      // HARDCODE the URL path to avoid React Router timing race conditions
+      // location.pathname may still be '/' when useEffect first fires during SPA navigation
+      const sourceUrl = `${window.location.origin}/basement-suite-confirmation`;
       console.log('[Meta Lead] Using sourceUrl:', sourceUrl);
       
       trackLead(state.email, 0, sourceUrl)
@@ -41,7 +41,7 @@ export default function BasementConfirmationPage() {
           console.error('[Meta Lead] Failed to track:', error);
         });
     }
-  }, [state?.email, state?.submitted, location.pathname]);
+  }, [state?.email, state?.submitted]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans">

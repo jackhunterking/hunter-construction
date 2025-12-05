@@ -66,8 +66,39 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
+      
+      // Initialize pixel
       fbq('init', '%VITE_META_PIXEL_ID%');
-      fbq('track', 'PageView');
+      
+      // Generate unique event ID for initial PageView
+      // This ID will be used by both browser (here) and server (in App.tsx)
+      // for proper deduplication per Facebook best practices
+      var eventIdPrefix = 'hc';
+      var random = Math.random().toString(36).substring(2, 11);
+      var timestamp = Date.now();
+      var initialEventId = eventIdPrefix + '_' + random + '_' + timestamp;
+      
+      // Store event ID for server-side tracking
+      window.__META_INITIAL_EVENT_ID__ = initialEventId;
+      
+      // TEST MODE CONFIGURATION
+      // See docs/META_PIXEL_TEST_MODE.md for instructions on disabling test mode
+      var TEST_MODE_ENABLED = true;
+      var TEST_EVENT_CODE = 'TEST20053';
+      
+      // Fire initial PageView with event ID
+      if (TEST_MODE_ENABLED) {
+        // TEST MODE: Use trackSingle with test_event_code
+        fbq('trackSingle', '%VITE_META_PIXEL_ID%', 'PageView', {}, {
+          eventID: initialEventId,
+          test_event_code: TEST_EVENT_CODE
+        });
+        console.log('[Meta Pixel] Fired TEST initial PageView with ID: ' + initialEventId + ' (test code: ' + TEST_EVENT_CODE + ')');
+      } else {
+        // PRODUCTION MODE: Normal tracking
+        fbq('track', 'PageView', {}, { eventID: initialEventId });
+        console.log('[Meta Pixel] Fired initial PageView with ID: ' + initialEventId);
+      }
     </script>
     <!-- End Meta Pixel Code -->
   </head>

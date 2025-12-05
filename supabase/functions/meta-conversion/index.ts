@@ -20,6 +20,7 @@ interface MetaEventData {
   eventSourceUrl: string;
   fbp?: string;
   fbc?: string;
+  testEventCode?: string; // Optional test event code for testing
 }
 
 async function hashData(data: string): Promise<string> {
@@ -75,6 +76,8 @@ serve(async (req) => {
       hasPhone: !!eventData.userData.phone,
       hasFbp: !!eventData.fbp,
       hasFbc: !!eventData.fbc,
+      hasTestCode: !!eventData.testEventCode,
+      testCode: eventData.testEventCode || 'NONE',
       clientIp: clientIp ? 'present' : 'missing',
       userAgent: userAgent ? 'present' : 'missing',
     });
@@ -124,6 +127,13 @@ serve(async (req) => {
         },
       ],
     };
+
+    // Add test_event_code to payload if provided (for test mode)
+    // See docs/META_PIXEL_TEST_MODE.md for instructions on disabling test mode
+    if (eventData.testEventCode) {
+      metaPayload.test_event_code = eventData.testEventCode;
+      console.log('[Meta CAPI] Test event code added to payload:', eventData.testEventCode);
+    }
 
     console.log('[Meta CAPI] Full payload:', JSON.stringify(metaPayload, null, 2));
 

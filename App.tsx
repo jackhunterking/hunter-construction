@@ -5,7 +5,7 @@ import BasementSuitePage from './pages/BasementSuitePage';
 import BasementConfirmationPage from './pages/BasementConfirmationPage';
 import InquirySelectionPage from './pages/InquirySelectionPage';
 import LandingPage from './pages/LandingPage';
-import { trackPageView } from './services/metaEventsService';
+import { trackPageView, sendServerOnlyEvent } from './services/metaEventsService';
 
 /**
  * Redirect component that redirects to external URL
@@ -59,15 +59,36 @@ export default function App() {
   const isFirstRender = useRef(true);
   
   // Meta Pixel is initialized in index.html following Facebook's official best practice
-  // Initial PageView is also fired in HTML, so we only track SUBSEQUENT SPA route changes here
+  // Initial PageView is fired in HTML (browser-side only)
+  // We send server-side event here to complete the deduplication pair
 
-  // Track PageView on SPA route changes (skip initial - already fired in HTML)
+  // Track PageView events
   useEffect(() => {
-    // Skip the first render - HTML already fired the initial PageView
-    // We don't call trackPageView here because it would fire a duplicate browser event
-    // The index.html PageView is sufficient for initial page load
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      
+      // Send server-only event for initial page load
+      // HTML already fired browser event, so we only send server-side here
+      // Using the same event ID from HTML for proper deduplication
+      const initialEventId = window.__META_INITIAL_EVENT_ID__;
+      
+      if (initialEventId) {
+        sendServerOnlyEvent(
+          'PageView',
+          initialEventId,
+          { email: '' },
+          {
+            content_type: 'page',
+            content_name: location.pathname,
+            page_path: location.pathname
+          }
+        ).catch(err => {
+          console.error('[Meta CAPI] Failed to send server-side PageView for initial load:', err);
+        });
+      } else {
+        console.warn('[Meta CAPI] Initial event ID not found - server-side PageView not sent');
+      }
+      
       return;
     }
 

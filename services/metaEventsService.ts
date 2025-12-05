@@ -1,3 +1,5 @@
+import { META_CONFIG, generateEventId } from './metaConfig';
+
 // Declare fbq global for TypeScript
 declare global {
   interface Window {
@@ -14,6 +16,7 @@ declare global {
       options?: { eventID?: string; test_event_code?: string }
     ) => void);
     _fbq?: any;
+    __META_INITIAL_EVENT_ID__?: string;
   }
 }
 
@@ -31,15 +34,9 @@ export interface MetaEventData {
   customData?: Record<string, any>;
   eventTime: number;
   eventSourceUrl: string;
-  fbp?: string; // Facebook browser ID cookie
-  fbc?: string; // Facebook click ID cookie
-}
-
-/**
- * Generate a unique event ID for deduplication between client and server events
- */
-function generateEventId(): string {
-  return `evt_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+  fbp?: string;
+  fbc?: string;
+  testEventCode?: string; // For server-side test events
 }
 
 /**
@@ -77,8 +74,20 @@ export async function sendMetaEvent(
     // 1. Fire client-side Pixel event (immediate)
     if (typeof window !== 'undefined' && window.fbq) {
       try {
-        window.fbq('track', eventName, customData || {}, { eventID: eventId });
-        console.log(`[Meta Pixel] Fired ${eventName} event with ID: ${eventId}`);
+        const pixelId = import.meta.env.VITE_META_PIXEL_ID;
+        
+        if (META_CONFIG.TEST_MODE_ENABLED && pixelId) {
+          // TEST MODE: Use trackSingle with test_event_code
+          window.fbq('trackSingle', pixelId, eventName, customData || {}, {
+            eventID: eventId,
+            test_event_code: META_CONFIG.TEST_EVENT_CODE
+          });
+          console.log(`[Meta Pixel] Fired TEST ${eventName} event with ID: ${eventId} (test code: ${META_CONFIG.TEST_EVENT_CODE})`);
+        } else {
+          // PRODUCTION MODE: Normal tracking
+          window.fbq('track', eventName, customData || {}, { eventID: eventId });
+          console.log(`[Meta Pixel] Fired ${eventName} event with ID: ${eventId}`);
+        }
       } catch (pixelError) {
         console.warn('Meta Pixel failed:', pixelError);
         // Continue to server-side even if pixel fails
@@ -88,48 +97,17 @@ export async function sendMetaEvent(
     }
 
     // 2. Fire server-side CAPI event (with same eventId for deduplication)
-    const eventData: MetaEventData = {
+    const result = await sendServerSideEvent(
       eventName,
-      eventId, // Same ID as client-side for deduplication
-      quoteId,
+      eventId,
       userData,
       customData,
-      eventTime: Math.floor(Date.now() / 1000),
-      eventSourceUrl: window.location.href,
+      quoteId,
       fbp,
-      fbc,
-    };
+      fbc
+    );
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    // Debug logging
-    console.log('[Meta CAPI] Sending to:', `${supabaseUrl}/functions/v1/meta-conversion`);
-    console.log('[Meta CAPI] Event data:', { eventName, eventId, userData: { email: userData.email } });
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('[Meta CAPI] Missing Supabase configuration!', { supabaseUrl: !!supabaseUrl, supabaseAnonKey: !!supabaseAnonKey });
-      return { success: false, error: 'Missing Supabase configuration' };
-    }
-    
-    const response = await fetch(`${supabaseUrl}/functions/v1/meta-conversion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-      },
-      body: JSON.stringify(eventData),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Meta CAPI] Server-side event failed:', errorText);
-      return { success: false, error: errorText };
-    }
-
-    const result = await response.json();
-    console.log(`[Meta CAPI] Server-side ${eventName} event sent with ID: ${eventId}`);
-    return { success: true, ...result };
+    return result;
   } catch (error) {
     console.error('Error sending Meta event:', error);
     return {
@@ -137,6 +115,108 @@ export async function sendMetaEvent(
       error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
+}
+
+/**
+ * Send server-side event only (no browser pixel)
+ * Used for initial page load where HTML already fired browser event
+ */
+export async function sendServerOnlyEvent(
+  eventName: MetaEventName,
+  eventId: string,
+  userData: { email: string; phone?: string; fullName?: string },
+  customData?: Record<string, any>,
+  quoteId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { fbp, fbc } = getFacebookCookies();
+    
+    console.log(`[Meta CAPI] Sending server-only ${eventName} event with ID: ${eventId}`);
+    
+    const result = await sendServerSideEvent(
+      eventName,
+      eventId,
+      userData,
+      customData,
+      quoteId,
+      fbp,
+      fbc
+    );
+    
+    return result;
+  } catch (error) {
+    console.error('Error sending server-only Meta event:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Internal function to send server-side CAPI event
+ */
+async function sendServerSideEvent(
+  eventName: MetaEventName,
+  eventId: string,
+  userData: { email: string; phone?: string; fullName?: string },
+  customData?: Record<string, any>,
+  quoteId?: string,
+  fbp?: string,
+  fbc?: string
+): Promise<{ success: boolean; error?: string }> {
+  const eventData: MetaEventData = {
+    eventName,
+    eventId,
+    quoteId,
+    userData,
+    customData,
+    eventTime: Math.floor(Date.now() / 1000),
+    eventSourceUrl: window.location.href,
+    fbp,
+    fbc,
+    // Include test code for server-side if test mode is enabled
+    testEventCode: META_CONFIG.TEST_MODE_ENABLED ? META_CONFIG.TEST_EVENT_CODE : undefined,
+  };
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  // Debug logging
+  console.log('[Meta CAPI] Sending to:', `${supabaseUrl}/functions/v1/meta-conversion`);
+  console.log('[Meta CAPI] Event data:', {
+    eventName,
+    eventId,
+    testMode: META_CONFIG.TEST_MODE_ENABLED,
+    userData: { email: userData.email }
+  });
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[Meta CAPI] Missing Supabase configuration!', {
+      supabaseUrl: !!supabaseUrl,
+      supabaseAnonKey: !!supabaseAnonKey
+    });
+    return { success: false, error: 'Missing Supabase configuration' };
+  }
+  
+  const response = await fetch(`${supabaseUrl}/functions/v1/meta-conversion`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+    },
+    body: JSON.stringify(eventData),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('[Meta CAPI] Server-side event failed:', errorText);
+    return { success: false, error: errorText };
+  }
+
+  const result = await response.json();
+  console.log(`[Meta CAPI] Server-side ${eventName} event sent with ID: ${eventId}`);
+  return { success: true, ...result };
 }
 
 export async function trackLead(email: string, estimateValue: number): Promise<void> {

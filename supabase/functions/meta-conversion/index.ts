@@ -72,6 +72,7 @@ serve(async (req) => {
     console.log('[Meta CAPI] Event received:', {
       eventName: eventData.eventName,
       eventId: eventData.eventId,
+      eventSourceUrl: eventData.eventSourceUrl,  // Log the URL for debugging
       hasEmail: !!eventData.userData.email,
       hasPhone: !!eventData.userData.phone,
       hasFbp: !!eventData.fbp,

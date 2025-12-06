@@ -5,7 +5,6 @@ import { FunnelLayout } from '../../components/FunnelProgressBar';
 import { useBasementForm, BASEMENT_TOTAL_STEPS } from '../../contexts/BasementFormContext';
 import { createBasementInquiry } from '../../services/basementDatabaseService';
 import { sendBasementConfirmationEmail, sendBasementSalesNotification } from '../../services/emailService';
-import { trackCompleteRegistration } from '../../services/metaCapiService';
 
 // Phone validation helper
 const isValidPhone = (phone: string) => {
@@ -82,20 +81,6 @@ export default function Step8Contact() {
         // Don't fail the submission if email fails
       }
 
-      // Track Meta CAPI CompleteRegistration event
-      if (sessionId) {
-        trackCompleteRegistration(
-          sessionId,
-          'basement',
-          {
-            email: formData.email,
-            phone: formData.phone,
-            firstName: formData.fullName.split(' ')[0],
-            lastName: formData.fullName.split(' ').slice(1).join(' ') || undefined,
-          },
-          'Basement Suite - Form Complete'
-        );
-      }
 
       // Navigate to confirmation page with full lead data for Lead event tracking
       navigate('/basement-suite-confirmation', { 

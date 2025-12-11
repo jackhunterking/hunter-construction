@@ -65,5 +65,6 @@ export interface BasementInquiryData {
   phone: string;
   status: string;
   notes: string | null;
+  session_id: string | null; // Links to funnel_sessions for attribution tracking
 }
 

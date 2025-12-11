@@ -9,7 +9,7 @@ import { HvacOption } from '../../types';
 
 export default function Step6Result() {
   const navigate = useNavigate();
-  const { formData, setEstimate, setQuoteId, completeStep, trackStepView, isInitialized } = usePodForm();
+  const { formData, setEstimate, setQuoteId, completeStep, trackStepView, sessionId, isInitialized } = usePodForm();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingText, setLoadingText] = useState('Analyzing your configuration...');
   const [showToast, setShowToast] = useState(false);
@@ -30,11 +30,11 @@ export default function Step6Result() {
       });
 
       try {
-        // Create partial quote in database
+        // Create partial quote in database with session tracking for attribution
         const savedQuote = await createPartialQuote(formData.contact.email, formData.config, {
           low: pricing.low,
           high: pricing.high,
-        });
+        }, sessionId);
 
         setQuoteId(savedQuote.id);
 

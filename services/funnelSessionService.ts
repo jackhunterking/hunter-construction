@@ -28,6 +28,14 @@ export interface FunnelSession {
   fbclid: string | null;
   fbc: string | null;
   fbp: string | null;
+  // Facebook HSA (HubSpot-style Attribution) parameters
+  hsa_acc: string | null;  // Ad Account ID
+  hsa_cam: string | null;  // Campaign ID
+  hsa_grp: string | null;  // Ad Set ID
+  hsa_ad: string | null;   // Ad ID
+  hsa_src: string | null;  // Source/Placement
+  hsa_net: string | null;  // Network
+  hsa_ver: string | null;  // HSA Version
 }
 
 export interface FunnelEvent {
@@ -59,9 +67,9 @@ function getStorageKey(funnelType: FunnelType): string {
 }
 
 /**
- * Get UTM parameters from URL
+ * Get UTM and Facebook HSA parameters from URL
  */
-function getUtmParams(): Record<string, string | null> {
+function getTrackingParams(): Record<string, string | null> {
   if (typeof window === 'undefined') {
     return {
       utm_source: null,
@@ -70,17 +78,34 @@ function getUtmParams(): Record<string, string | null> {
       utm_term: null,
       utm_content: null,
       fbclid: null,
+      hsa_acc: null,
+      hsa_cam: null,
+      hsa_grp: null,
+      hsa_ad: null,
+      hsa_src: null,
+      hsa_net: null,
+      hsa_ver: null,
     };
   }
 
   const params = new URLSearchParams(window.location.search);
   return {
+    // Standard UTM parameters
     utm_source: params.get('utm_source'),
     utm_medium: params.get('utm_medium'),
     utm_campaign: params.get('utm_campaign'),
     utm_term: params.get('utm_term'),
     utm_content: params.get('utm_content'),
+    // Facebook Click ID
     fbclid: params.get('fbclid'),
+    // Facebook HSA (HubSpot-style Attribution) parameters
+    hsa_acc: params.get('hsa_acc'),  // Ad Account ID
+    hsa_cam: params.get('hsa_cam'),  // Campaign ID
+    hsa_grp: params.get('hsa_grp'),  // Ad Set ID
+    hsa_ad: params.get('hsa_ad'),    // Ad ID
+    hsa_src: params.get('hsa_src'),  // Source/Placement
+    hsa_net: params.get('hsa_net'),  // Network
+    hsa_ver: params.get('hsa_ver'),  // HSA Version
   };
 }
 
@@ -132,7 +157,7 @@ export async function initFunnelSession(funnelType: FunnelType): Promise<string>
 
   // Create new session
   const sessionId = generateSessionId();
-  const utmParams = getUtmParams();
+  const trackingParams = getTrackingParams();
   const fbCookies = getFacebookCookies();
 
   if (supabase) {
@@ -143,14 +168,25 @@ export async function initFunnelSession(funnelType: FunnelType): Promise<string>
         current_step: 1,
         completed_steps: [],
         form_data: {},
-        utm_source: utmParams.utm_source,
-        utm_medium: utmParams.utm_medium,
-        utm_campaign: utmParams.utm_campaign,
-        utm_term: utmParams.utm_term,
-        utm_content: utmParams.utm_content,
-        fbclid: utmParams.fbclid,
+        // Standard UTM parameters
+        utm_source: trackingParams.utm_source,
+        utm_medium: trackingParams.utm_medium,
+        utm_campaign: trackingParams.utm_campaign,
+        utm_term: trackingParams.utm_term,
+        utm_content: trackingParams.utm_content,
+        // Facebook Click ID
+        fbclid: trackingParams.fbclid,
+        // Facebook cookies
         fbc: fbCookies.fbc,
         fbp: fbCookies.fbp,
+        // Facebook HSA parameters for ad attribution
+        hsa_acc: trackingParams.hsa_acc,
+        hsa_cam: trackingParams.hsa_cam,
+        hsa_grp: trackingParams.hsa_grp,
+        hsa_ad: trackingParams.hsa_ad,
+        hsa_src: trackingParams.hsa_src,
+        hsa_net: trackingParams.hsa_net,
+        hsa_ver: trackingParams.hsa_ver,
         referrer: typeof document !== 'undefined' ? document.referrer : null,
       });
     } catch (error) {

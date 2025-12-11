@@ -10,9 +10,12 @@ function generateMockId(): string {
 
 /**
  * Create a new basement inquiry in the database
+ * @param formData - The form data from the basement inquiry
+ * @param sessionId - Optional session ID to link to funnel_sessions for attribution tracking
  */
 export async function createBasementInquiry(
-  formData: BasementFormData
+  formData: BasementFormData,
+  sessionId?: string
 ): Promise<BasementInquiryData> {
   const now = new Date().toISOString();
   const generatedId = crypto.randomUUID();
@@ -34,6 +37,7 @@ export async function createBasementInquiry(
       phone: formData.phone,
       status: 'submitted',
       notes: null,
+      session_id: sessionId || null,
     };
   }
 
@@ -52,6 +56,7 @@ export async function createBasementInquiry(
       full_name: formData.fullName,
       phone: formData.phone,
       status: 'submitted',
+      session_id: sessionId || null, // Link to funnel_sessions for attribution
     });
 
   if (error) {
@@ -76,6 +81,7 @@ export async function createBasementInquiry(
     phone: formData.phone,
     status: 'submitted',
     notes: null,
+    session_id: sessionId || null,
   };
 }
 

@@ -41,8 +41,8 @@ export default function Step8Contact() {
       // Complete the step first
       await completeStep(8);
 
-      // Save to database
-      const inquiry = await createBasementInquiry(formData);
+      // Save to database with session tracking for attribution
+      const inquiry = await createBasementInquiry(formData, sessionId);
       const inquiryId = inquiry.id;
       const submittedAt = inquiry.created_at;
 

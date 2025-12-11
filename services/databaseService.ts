@@ -20,6 +20,7 @@ export interface QuoteData {
   estimate_high: number;
   status: string;
   notes: string | null;
+  session_id: string | null; // Links to funnel_sessions for attribution tracking
 }
 
 // Generate a mock quote ID for when Supabase is not configured
@@ -31,7 +32,8 @@ export async function createQuote(
   config: PodConfiguration,
   address: AddressData,
   contact: ContactData,
-  estimate: { low: number; high: number }
+  estimate: { low: number; high: number },
+  sessionId?: string
 ): Promise<QuoteData> {
   if (!supabase) {
     console.warn('Supabase not configured, returning mock quote');
@@ -54,6 +56,7 @@ export async function createQuote(
       estimate_high: estimate.high,
       status: 'submitted',
       notes: null,
+      session_id: sessionId || null,
     };
   }
 
@@ -73,6 +76,7 @@ export async function createQuote(
       longitude: address.lng,
       estimate_low: estimate.low,
       estimate_high: estimate.high,
+      session_id: sessionId || null, // Link to funnel_sessions for attribution
     })
     .select()
     .single();
@@ -136,11 +140,16 @@ export async function updateQuoteStatus(
 /**
  * Touchpoint 1: Create partial quote with email, config, and estimate
  * Status: 'estimate_sent'
+ * @param email - User's email address
+ * @param config - Pod configuration choices
+ * @param estimate - Price estimate range
+ * @param sessionId - Optional session ID to link to funnel_sessions for attribution tracking
  */
 export async function createPartialQuote(
   email: string,
   config: PodConfiguration,
-  estimate: { low: number; high: number }
+  estimate: { low: number; high: number },
+  sessionId?: string
 ): Promise<QuoteData> {
   if (!supabase) {
     console.warn('Supabase not configured, returning mock partial quote');
@@ -163,6 +172,7 @@ export async function createPartialQuote(
       estimate_high: estimate.high,
       status: 'estimate_sent',
       notes: null,
+      session_id: sessionId || null,
     };
   }
 
@@ -178,6 +188,7 @@ export async function createPartialQuote(
       estimate_low: estimate.low,
       estimate_high: estimate.high,
       status: 'estimate_sent',
+      session_id: sessionId || null, // Link to funnel_sessions for attribution
       // Contact info fields are nullable for this stage
       full_name: null,
       phone: null,
@@ -226,6 +237,7 @@ export async function completeQuote(
       estimate_high: 0,
       status: 'submitted',
       notes: null,
+      session_id: null,
     };
   }
 
